@@ -54,7 +54,7 @@ export class IntakeStore {
     return { intakeId: row.intake_id, status: row.connected ? "connected" : row.expires_at <= this.now() ? "expired" : "pending" };
   }
 
-  // Server-only handoff for the future agent. Never expose this over the guest
+  // Server-only handoff for the assistant. Never expose this over the guest
   // status endpoint: only a verified message sender can have a connection.
   forConnection(userId: string): IntakeDetails | undefined {
     const row = this.db.prepare(`SELECT i.* FROM guest_intakes i
@@ -72,6 +72,16 @@ export class IntakeStore {
 
   remove(intakeId: string): void {
     this.db.prepare("DELETE FROM guest_intakes WHERE intake_id = ?").run(intakeId);
+  }
+
+  removeForUser(userId: string): void {
+    this.db.prepare("DELETE FROM guest_intakes WHERE user_id = ?").run(userId);
+  }
+
+  removeUnverifiedForSender(address: string): void {
+    this.db.prepare(`DELETE FROM guest_intakes WHERE address = ?
+      AND NOT EXISTS(SELECT 1 FROM connections c WHERE c.user_id = guest_intakes.user_id)
+    `).run(address);
   }
 
   prune(): void {

@@ -6,9 +6,11 @@ MoreTime is a hackathon project for people dealing with overdue bills, utility s
 
 - Upload a bill or describe the problem, then add a phone number and ZIP code or state. No account needed.
 - Save those details and connect the conversation through Photon’s iMessage integration by replying with a verification code.
+- After verification, Gemini reads the saved bill and answers follow-up questions in the same chat, using persisted bill facts and recent conversation.
+- Send an updated bill directly in iMessage, or reply STOP to disconnect and remove the saved case from the active database.
 - Try the landing page’s sample conversations about shutoffs, payment plans, and disputed bills.
 
-The sample conversations are scripted New Jersey examples. Bill analysis and the AI assistant are still being built.
+The sample conversations are scripted New Jersey examples. The live Gemini assistant can explain bills and draft requests; policy retrieval, contacting billers, and automatic follow-ups are still being built.
 
 ## Run locally
 
@@ -20,7 +22,7 @@ Install the backend dependencies:
 npm run setup
 ```
 
-Set up `more-time/.env` using [the example configuration](more-time/.env.example). Add your Photon `PROJECT_ID` and `PROJECT_SECRET`, keeping any existing settings. Your Photon project needs iMessage access and an eligible demo recipient. Guest intake does not need a sign-in provider.
+Set up `more-time/.env` using [the example configuration](more-time/.env.example). Add your Photon `PROJECT_ID` and `PROJECT_SECRET`, keeping any existing settings. Add `GEMINI_API_KEY` from [Google AI Studio](https://aistudio.google.com/apikey) to enable the assistant. Bill reading uses `GEMINI_MODEL` (default `gemini-3.8-flash`); routine chat uses `GEMINI_CHAT_MODEL` (default `gemini-3.5-flash-lite`). Your Photon project needs iMessage access and an eligible demo recipient. Guest intake does not need a sign-in provider.
 
 Start the backend:
 
@@ -53,8 +55,16 @@ npm test
 
 Use `npm run dev` to restart the backend automatically as you edit it.
 
+Check Gemini independently with `npm run gemini:check`. This sends a fictional
+text example to Gemini and prints extracted facts and a reply, without opening
+Photon or sending an iMessage. See [Gemini setup](more-time/docs/gemini-setup.md)
+for the sample PDF command, storage behavior, and current limits.
+
 ## Next
 
-Connect the resolution agent and Gemini, extract the important details from bills, and use verified local sources to help people understand their options and draft requests. Bills uploaded through the website are saved now; processing attachments sent directly through iMessage is still to come.
+The [TODO list](TODO.md) tracks agentic email outreach, internet research for biller
+contacts and local policies, consistent output from fast models, and a helpful,
+action-oriented tone. Bill extraction and conversational replies are connected
+through Gemini; facts still need user confirmation.
 
 See the [intake integration guide](landing/INTAKE_INTEGRATION.md) for the API and storage details, and [content sources](landing/CONTENT_SOURCES.md) for the sample conversations.

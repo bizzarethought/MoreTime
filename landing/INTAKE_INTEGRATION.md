@@ -6,10 +6,11 @@ The landing page now uses a guest flow accepting a bill and/or text plus a phone
 number and ZIP code or state. The separate account-linking API still accepts only
 `address` and `consent`, requires a sign-in JWT, and caps requests at 8 KB.
 
-`more-time/src/photon.ts`, `auth.ts`, `api.ts`, and the existing account endpoints
-are unchanged. The intake reuses `photonTransport(...).welcome(...)`,
-`LinkStore.issue`, and the existing `CONNECT <code>` reply handler. No agent or
-Gemini integration has been added.
+The intake reuses `photonTransport(...).welcome(...)`, `LinkStore.issue`, and the
+existing `CONNECT <code>` reply handler. Account authentication and endpoints
+keep their existing contract. After phone verification, the Photon message loop
+hands the saved intake to Gemini for bill extraction and conversational replies.
+See [Gemini setup](../more-time/docs/gemini-setup.md) for enabling the engine.
 
 Two modules under `more-time/src/` handle the intake:
 
@@ -42,7 +43,7 @@ No details are included in the welcome message before that confirmation.
 | `zipCode` | ZIP or ZIP+4; mutually exclusive with `state` |
 | `state` | U.S. state/territory code when ZIP is unknown |
 | `bill` | Optional single PDF/JPEG/PNG/WebP/HEIC/HEIF file, at most 10 MB |
-| `consent` | Literal string `true`, supplied only after explicit agreement |
+| `consent` | Literal string `true`, supplied only after agreement to messages and Gemini processing |
 
 After saving and sending the connection message, return `201`:
 
@@ -69,7 +70,7 @@ outcome uncertain; the UI tells the visitor to check Messages before retrying.
 The server uses the existing phone-based rate limit (three codes per five
 minutes), validates type/signature, size, location, and consent, and stores bill
 bytes in SQLite rather than creating files from uploaded filenames. File signature
-checks are basic format checks; document parsing and analysis are future work.
+checks are basic format checks; Gemini performs document analysis after verification.
 
 Expired, unverified intakes have their phone, details, location, and bill cleared
 on startup, status reads, new submissions, and a 60-second cleanup interval.
@@ -77,9 +78,11 @@ Only a status tombstone remains for 24 hours, then it is deleted. This is logica
 database cleanup, not a guarantee of secure erasure from SQLite pages or backups.
 Failed sends revoke the code and delete the unverified record. If the recipient
 already confirmed during a transport error, the verified intake is preserved.
-Connected intakes stay saved for the future agent; a retention/deletion workflow
-for those cases has not been implemented yet. The UI explains that details remain
-saved and have not been analyzed.
+Connected intakes stay saved for the assistant. Reply STOP or UNSUBSCRIBE in the
+verified chat to disconnect and remove the case, intake and assistant receipts
+from the active database. A general retention schedule is not implemented.
+Connection status confirms phone verification; check Messages for the analysis
+or an explanation that the engine is unavailable.
 An address already linked by the current backend returns `409`; this scope does
 not change account recovery or allow a visitor to claim an existing connection.
 
@@ -95,7 +98,7 @@ before loading the script. Never place Photon credentials in the landing page.
 Use Node 24+ and install backend dependencies with `npm run setup` from the
 repository root. Configure `PROJECT_ID` and `PROJECT_SECRET` from the Photon
 dashboard locally in `more-time/.env` (or provide them through the process
-environment). No `AUTH_*` settings are needed for guest intake. If you already
+environment), and add `GEMINI_API_KEY` to enable the assistant. No `AUTH_*` settings are needed for guest intake. If you already
 set `ALLOWED_ORIGINS`, include the exact landing-page origin, such as
 `http://localhost:8000`. See `more-time/.env.example` for available settings.
 
@@ -115,11 +118,13 @@ with a fake transport. Browser checks use fictional data and simulated responses
 they do not send real messages. Live delivery still needs configured Photon
 credentials and an eligible test recipient.
 
-## Handoff for the future agent
+## Handoff to the assistant
 
 `LinkStore.connectionForSender(sender)` returns the verified `user_id`.
 `IntakeStore.forConnection(connection.user_id)` returns the phone, text,
 `zipCode` or `state`, and optional bill `{ name, type, bytes }`. Both stores must
 open the same SQLite file. This read is server-only and returns no intake before
-phone verification; the guest HTTP token grants status access only. The existing
-message loop does not call this method or process the bill yet.
+phone verification; the guest HTTP token grants status access only. The message
+loop calls `createMessageHandler`, which reads the saved intake only after
+verification, invokes Gemini, and saves bill facts and recent conversation in
+`ConversationStore`. The HTTP status endpoint never returns bill contents or replies.

@@ -101,7 +101,7 @@ export function createIntakeApi(options: {
       let destination: { messagingAddress: string | null };
       try {
         destination = await options.transport.welcome(input.address,
-          `You requested a MoreTime conversation. Reply CONNECT ${challenge.code} within 5 minutes to confirm your number. Only do this if you just chose Send & connect on the MoreTime website. Otherwise, ignore this message. The bill-resolution assistant is still in development.`);
+          `You requested a MoreTime conversation. Reply CONNECT ${challenge.code} within 5 minutes to confirm your number. Only do this if you just chose Send & connect on the MoreTime website. Otherwise, ignore this message. After confirming, continue your bill questions in this chat. Reply STOP to disconnect.`);
       } catch {
         // The provider may fail after delivery. Invalidate this code and discard
         // the unverified intake; never retry the outgoing message automatically.

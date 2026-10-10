@@ -6,6 +6,7 @@
     "start": "npm --prefix more-time run start",
     "dev": "npm --prefix more-time run dev",
     "typecheck": "npm --prefix more-time run typecheck",
+    "gemini:check": "npm --prefix more-time run gemini:check --",
     "test": "npm --prefix more-time test"
   }
 }

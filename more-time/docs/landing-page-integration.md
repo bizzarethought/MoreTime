@@ -212,12 +212,11 @@ reply. Receipts are retained for seven days. This is not an exactly-once outboun
 delivery guarantee or a production outbox.
 
 Only private inbound iMessage DMs are handled; group messages and outbound echoes
-are ignored. Attachments are not downloaded or analyzed in this change. Connected
-users receive an explicit “bill processing is not available yet” response. Case
-intake, extraction, and the Python resolution-agent connection are the next build
-stage. The SQLite database stores sender addresses, connection metadata, code
-hashes, rate limits, and generic reply receipts; it does not store bill contents
-or incoming conversation text.
+are ignored. The Gemini connector now analyzes verified guest intakes and direct
+PDF/image attachments, then answers follow-ups with saved context. Without a
+Gemini key, it explains that analysis is unavailable. The SQLite database now
+also stores bill documents, extracted facts and conversation turns. See the
+[Gemini guide](gemini-setup.md) for setup, storage behavior, tests and current limits.
 
 References: [Photon quickstart](https://photon.codes/docs/spectrum-ts/getting-started),
 [iMessage routing](https://photon.codes/docs/spectrum-ts/providers/imessage/connection-and-routing),
