@@ -1,6 +1,8 @@
 import { DatabaseSync } from "node:sqlite";
 import { billFactsSchema } from "./gemini.ts";
 import type { BillDocument, BillFacts, ChatTurn } from "./gemini.ts";
+import { caseStateSchema, emptyCase } from "./case.ts";
+import type { CaseState } from "./case.ts";
 
 export class ConversationStore {
   private readonly db: DatabaseSync;
@@ -20,14 +22,19 @@ export class ConversationStore {
       );
       CREATE INDEX IF NOT EXISTS bill_turns_user ON bill_turns(user_id, sequence);
     `);
+    const columns = this.db.prepare("PRAGMA table_info(bill_sessions)").all() as { name: string }[];
+    if (!columns.some(column => column.name === "case_json")) this.db.exec("ALTER TABLE bill_sessions ADD COLUMN case_json TEXT");
+    if (!columns.some(column => column.name === "description")) this.db.exec("ALTER TABLE bill_sessions ADD COLUMN description TEXT");
   }
 
-  session(userId: string): { bill: BillFacts; document: BillDocument | null } | undefined {
+  session(userId: string): { bill: BillFacts; document: BillDocument | null; caseState: CaseState; details: string | null } | undefined {
     const row = this.db.prepare("SELECT * FROM bill_sessions WHERE user_id = ?").get(userId) as {
-      bill_json: string; document_name: string | null; document_type: string | null; document_bytes: Uint8Array | null;
+      bill_json: string; document_name: string | null; document_type: string | null; document_bytes: Uint8Array | null; case_json: string | null; description: string | null;
     } | undefined;
     return row ? {
       bill: billFactsSchema.parse(JSON.parse(row.bill_json)),
+      details: row.description,
+      caseState: row.case_json ? caseStateSchema.parse(JSON.parse(row.case_json)) : emptyCase(),
       document: row.document_bytes ? { name: row.document_name!, type: row.document_type!, bytes: row.document_bytes } : null,
     } : undefined;
   }
@@ -43,17 +50,18 @@ export class ConversationStore {
     return rows.reverse();
   }
 
-  complete(input: { userId: string; messageId: string; question: string; reply: string; bill: BillFacts; document: BillDocument | null }): void {
+  complete(input: { userId: string; messageId: string; question: string; reply: string; bill: BillFacts; document: BillDocument | null; caseState?: CaseState; details?: string }): void {
     this.db.exec("BEGIN IMMEDIATE");
     try {
       // A duplicate delivery must never replace a newer case's bill facts.
       if (!this.reply(input.messageId, input.userId)) {
-        this.db.prepare(`INSERT INTO bill_sessions VALUES (?, ?, ?, ?, ?)
+        this.db.prepare(`INSERT INTO bill_sessions (user_id, bill_json, document_name, document_type, document_bytes, case_json, description) VALUES (?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(user_id) DO UPDATE SET bill_json = excluded.bill_json,
             document_name = excluded.document_name, document_type = excluded.document_type,
-            document_bytes = excluded.document_bytes
+            document_bytes = excluded.document_bytes, case_json = COALESCE(excluded.case_json, bill_sessions.case_json),
+            description = COALESCE(excluded.description, bill_sessions.description)
         `).run(input.userId, JSON.stringify(input.bill), input.document?.name ?? null,
-          input.document?.type ?? null, input.document?.bytes ?? null);
+          input.document?.type ?? null, input.document?.bytes ?? null, input.caseState ? JSON.stringify(caseStateSchema.parse(input.caseState)) : null, input.details ?? null);
         this.db.prepare(`INSERT INTO bill_turns (message_id, user_id, question, reply) VALUES (?, ?, ?, ?)`)
           .run(input.messageId, input.userId, input.question, input.reply);
       }

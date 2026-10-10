@@ -54,7 +54,7 @@ This command makes a **real Gemini API request**, using a fictional text example
 It prints extraction and a reply; it does not open Photon or send any iMessages:
 
 ```sh
-
+npm run gemini:check
 ```
 
 To test the repository's fictional PDF, run this from the repository root. The
@@ -89,7 +89,7 @@ Stop the running backend with Ctrl+C and restart `npm start` from the repository
 root. Environment changes are loaded on startup. Ask a new question in the existing
 connected chat; you do not need another CONNECT code.
 
-Confirm startup prints `Gemini runtime: version=2 saved_facts_first=true` with
+Confirm startup prints `Gemini runtime: version=3 prompt=structured-v1 saved_facts_first=true` with
 `chat_timeout_ms=30000` (unless explicitly configured otherwise). This identifies
 the new process and its effective timeout without exposing credentials.
 
@@ -122,7 +122,7 @@ Photon echo demo and stop that demo; keep one MoreTime backend running.
   remain null. Runtime validation rejects malformed output, impossible dates,
   unsupported critical facts, and incomplete responses. Extraction still needs
   user confirmation; source quotes are model-generated, not independent OCR proof.
-- Follow-ups first use saved facts and the most recent ten conversation turns.
+- Follow-ups first use saved facts, persistent user case memory and the most recent ten conversation turns.
   Gemini can request the original/latest document when it needs source details
   absent from that context. The server then makes a second request with the retained
   document inline. General questions avoid reprocessing large packets every turn.
@@ -159,6 +159,8 @@ Automated tests inject fake model responses and cover schema validation, verific
 gating, conversation isolation/persistence, duplicates, failures/retries, STOP,
 disconnect during analysis, and bounded attachment streams. They do not establish
 model accuracy. Live Gemini and Photon checks require your configured credentials.
+See [the structured prompt guide](structured-prompt-engine.md) for the current
+response contract, source/contact rules, tone, remembered case and live evaluation.
 
 References: [Google GenAI SDK](https://ai.google.dev/gemini-api/docs/libraries),
 [Gemini 3.8 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash),

@@ -3,6 +3,7 @@ import { extname, basename } from "node:path";
 import { geminiFromEnvironment, MAX_DOCUMENT_BYTES } from "./gemini.ts";
 import type { BillDocument, BillFacts, ChatTurn } from "./gemini.ts";
 import { assistantErrorCode } from "./assistant-error.ts";
+import { emptyCase } from "./case.ts";
 
 // Run manually to check Gemini without opening Photon or sending any messages.
 let stage = "configuration";
@@ -15,9 +16,11 @@ try {
   } else {
     const args = process.argv.slice(2);
     const chatOnly = args.includes("--chat-only");
+    const showStructure = args.includes("--show-structure");
     const followUp = args.includes("--follow-up") || chatOnly;
-    const path = args.find(arg => arg !== "--follow-up" && arg !== "--chat-only");
+    const path = args.find(arg => !["--follow-up", "--chat-only", "--show-structure"].includes(arg));
     if (chatOnly && path) throw new Error("invalid_document");
+    if (showStructure && !chatOnly) throw new Error("invalid_document");
     stage = "load_document";
     let document: BillDocument | null = null;
     if (path) {
@@ -45,12 +48,18 @@ try {
     if (followUp) {
       stage = "answer_question";
       const history: ChatTurn[] = [{ question: input.question, reply: result.reply }];
+      let caseState = "caseState" in result ? result.caseState ?? emptyCase() : emptyCase();
+      let activeBill = result.bill;
       const questions = chatOnly ? ["Can I pay in installments?", "I can afford $30 per month. What should I ask for?", "Draft a short message asking for that payment plan."] : ["Can I pay in installments?"];
       for (const question of questions) {
         stageStarted = performance.now();
-        const reply = await engine.answer({ ...input, bill: result.bill, question, history });
+        const answerInput = { ...input, bill: activeBill, question, history, caseState };
+        const answer = engine.respond ? await engine.respond(answerInput) : { reply: await engine.answer(answerInput), caseState };
+        const reply = answer.reply;
+        caseState = answer.caseState ?? caseState;
+        if ("bill" in answer) activeBill = answer.bill;
         console.error(`Gemini check: stage=${stage} elapsed_ms=${Math.round(performance.now() - stageStarted)}.`);
-        console.log(JSON.stringify({ question, reply }, null, 2));
+        console.log(JSON.stringify({ question, reply, ...(showStructure ? { caseState, response: "response" in answer ? answer.response : null } : {}) }, null, 2));
         history.push({ question, reply });
       }
     }

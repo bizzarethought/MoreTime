@@ -13,6 +13,7 @@ import { photonTransport, runMessageLoop } from "./photon.ts";
 import { geminiFromEnvironment, DEFAULT_GEMINI_CHAT_TIMEOUT_MS, DEFAULT_GEMINI_TIMEOUT_MS } from "./gemini.ts";
 import { ConversationStore } from "./conversation-store.ts";
 import { createMessageHandler } from "./assistant.ts";
+import { PROMPT_VERSION } from "./prompts.ts";
 
 const projectId = process.env.PROJECT_ID || process.env.SPECTRUM_PROJECT_ID;
 const projectSecret = process.env.PROJECT_SECRET || process.env.SPECTRUM_PROJECT_SECRET;
@@ -61,7 +62,7 @@ try {
   });
   console.log(`MoreTime intake and account-linking API is listening on port ${port}. Ctrl+C stops it.`);
   console.log(engine ? "Gemini bill analysis and chat are enabled." : "Set GEMINI_API_KEY to enable bill analysis and chat. Messaging verification is available.");
-  if (engine) console.log(`Gemini runtime: version=2 saved_facts_first=true retry_attempts=2 chat_timeout_ms=${Number(process.env.GEMINI_CHAT_TIMEOUT_MS?.trim() || DEFAULT_GEMINI_CHAT_TIMEOUT_MS)} document_timeout_ms=${Number(process.env.GEMINI_TIMEOUT_MS?.trim() || DEFAULT_GEMINI_TIMEOUT_MS)}.`);
+  if (engine) console.log(`Gemini runtime: version=3 prompt=${PROMPT_VERSION} saved_facts_first=true retry_attempts=2 chat_timeout_ms=${Number(process.env.GEMINI_CHAT_TIMEOUT_MS?.trim() || DEFAULT_GEMINI_CHAT_TIMEOUT_MS)} document_timeout_ms=${Number(process.env.GEMINI_TIMEOUT_MS?.trim() || DEFAULT_GEMINI_TIMEOUT_MS)}.`);
   if (!process.env.AUTH_JWKS_URL || !process.env.AUTH_ISSUER || !process.env.AUTH_AUDIENCE) {
     console.log("Configure AUTH_JWKS_URL, AUTH_ISSUER, and AUTH_AUDIENCE before connecting website accounts.");
   }

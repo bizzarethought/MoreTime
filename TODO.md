@@ -23,20 +23,24 @@ is to give MoreTime the tools and case tracking to pursue a resolution.
   missing eligibility details, and explain when a contact or policy cannot be
   verified. Keep website content separate from agent instructions.
 
-- [ ] **Standardize useful output from a fast model.**
-  Define a structured response contract and a consistent iMessage presentation:
-  what we understand, the relevant verified option, the next action, its status,
-  and at most one or two necessary questions. Show only the parts that matter for
-  that turn. Preserve amounts, deadlines, source references, uncertainty, and
-  action status across model choices. Build examples and evaluation cases for
-  payment plans, assistance, disputes, old notices, and multiple bills; tune the
-  prompts and assess model fine-tuning if needed and supported. Measure latency
-  and usefulness together so fast responses remain specific and actionable.
+- [x] **Implement a structured prompt and response contract for the fast model.**
+  Versioned extraction/chat instructions, separate statement records, source
+  quotes, persistent case memory and a consistent iMessage formatter now provide
+  a direct answer, concrete next step, who to contact and at most one necessary
+  question. The backend calculates installment counts, suppresses known questions,
+  distinguishes printed from verified contacts and handles common action-status
+  questions from application state. Tests and a live fictional evaluation cover
+  payment plans, assistance, disputes, insurance, corrections, old notices and
+  multiple bills. See [the implementation guide](more-time/docs/structured-prompt-engine.md).
 
-- [ ] **Make the tone helpful, eager, and focused on resolving the issue.**
-  Acknowledge the user's situation briefly, use clear conversational language,
-  offer a concrete next step, and take ownership of work the agent can perform.
-  Prefer “I can ask the billing office about a payment plan” once that tool is
-  available. Give concise progress updates and distinguish a proposed action,
-  a sent request, and an agreement confirmed by the biller. Avoid repetitive
-  disclaimers, generic advice, and promises unsupported by actual actions.
+- [ ] **Evaluate and tune model quality on a broader set of consented samples.**
+  Compare fast models with `npm run gemini:eval`, inspect factual grounding and
+  usefulness as well as latency, add real-world edge cases, and assess weight
+  fine-tuning if needed and supported. Prompt tuning is implemented; trained model
+  weights and a production accuracy benchmark are not.
+
+- [x] **Add a reassuring, practical tone to the prompt and formatter.**
+  Briefly acknowledge the situation, answer directly, offer specific next steps
+  and use drafts to make progress. Avoid shame, repetitive filler and promises
+  unsupported by tools. Keep improving tone through the evaluation work above.
+  Once email tools exist, add actual outreach progress and confirmed outcomes.

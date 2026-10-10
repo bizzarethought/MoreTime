@@ -38,10 +38,14 @@ under `data/`. Use a persistent volume and one running replica when deploying.
 
 After verification, Gemini extracts bill facts and replies in the same iMessage
 conversation. Follow-up questions use persisted bill facts, the document and the
-last ten turns. Website uploads and direct iMessage PDF/image attachments work.
+last ten turns plus persistent case memory. Responses include next steps and
+contact guidance, and reuse budgets and user corrections. Website uploads and
+direct iMessage PDF/image attachments work.
 Without `GEMINI_API_KEY`, verification works but analysis remains disabled.
 Read [Gemini setup](docs/gemini-setup.md), or run `npm run gemini:check` from the
 root to check Gemini independently without sending an iMessage.
+The [structured prompt guide](docs/structured-prompt-engine.md) explains extraction,
+response formatting, tone, case memory, and the live `npm run gemini:eval` benchmark.
 
 The assistant can explain bills and draft requests; contacting billers, policy
 retrieval and scheduled follow-ups are not implemented. Reply STOP to disconnect
