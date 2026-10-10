@@ -3,6 +3,21 @@
 Tentative name: **MoreTime**  
 Pitch: **Text us the bill you can't afford. We help you understand your options, prepare your request, and follow the case toward resolution.**
 
+## Current status
+
+MoreTime is in the planning stage for a 24-hour hackathon. This repository currently contains the project README; application code, dependencies, messaging integration, datasets, and model training have not been added yet. The architecture and features below describe the intended build.
+
+## Getting started
+
+Start with the MVP scope, build order, and open decisions below. There are no installation or application run commands yet. Setup instructions will be added when the backend and its dependencies are implemented.
+
+To review local changes from the repository directory:
+
+```sh
+git status
+git diff -- README.md
+```
+
 ## Concept
 
 MoreTime is a conversational notice-resolution assistant delivered through iMessage. A user sends a bill or notice, describes their circumstances, and receives grounded guidance and help preparing their next action. The assistant remembers the case and adapts when the user reports a refusal, an offer, a missing document, or a new deadline.
@@ -135,5 +150,5 @@ Also test a case where the correct response is to ask for a clearer image or add
 - Medical bills or utility overdue notices?
 - Messaging provider and attachment support?
 - Event classifier plus extraction, or generative structured-update fine-tuning?
-- Available hackathon time, compute, and team responsibilities?
+- Compute availability and team responsibilities within the 24-hour hackathon?
 - Who will own blind-test preparation and keep the answer keys hidden?
