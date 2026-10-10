@@ -29,6 +29,26 @@ The sample conversations are scripted New Jersey examples. The live Gemini assis
 
 You’ll need Node.js 24+, npm, and Python 3. Run these commands from the repository root.
 
+For one-command startup, use:
+
+```sh
+./run.sh
+```
+
+The launcher installs dependencies only if they are missing or differ from the
+lockfile, then gates startup on TypeScript checks and tests. It starts the backend
+and landing page together; Ctrl+C stops both and their child processes. Existing
+environment settings are loaded by the backend as usual.
+
+Use `./run.sh --dev` for automatic backend reloads, or `./run.sh --check` to run
+the gates without starting services. `npm run run` is an equivalent npm shortcut.
+The landing page defaults to port 8000; `--port 8001` selects another port (also
+update your backend's `ALLOWED_ORIGINS` locally if you change it). If a service is
+already running on the selected port, stop that existing service first. The
+launcher works when invoked by its absolute path from another directory.
+
+The individual commands below remain available for manual startup.
+
 Install the backend dependencies:
 
 ```sh
