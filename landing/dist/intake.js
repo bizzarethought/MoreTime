@@ -89,8 +89,8 @@
         document.getElementById('intake-code').textContent = '';
         title.textContent = 'You’re connected.';
         description.textContent = 'Your number and bill details are linked to this conversation.';
-        document.getElementById('intake-connect-heading').textContent = 'Your details are saved.';
-        document.getElementById('intake-connect-description').textContent = 'You can return to your MoreTime conversation in Messages. Your details remain saved when you close this window. The AI assistant is still in development, so your bill has not been analyzed yet.';
+        document.getElementById('intake-connect-heading').textContent = 'Continue in your conversation.';
+        document.getElementById('intake-connect-description').textContent = 'Check Messages for MoreTime’s reply. When the AI assistant is enabled, it will read your bill and ask you to confirm the important details. You can keep asking questions there. Closing this window does not end your conversation; reply STOP in Messages to disconnect and remove your saved case.';
         document.getElementById('intake-connection-state').textContent = 'Connection confirmed.';
         connection = null;
       } else if (result.status === 'expired' || Date.now() >= Date.parse(activeConnection.expiresAt)) {

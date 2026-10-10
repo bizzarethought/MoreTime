@@ -1,6 +1,6 @@
-# MoreTime intake and iMessage linking
+# MoreTime intake, iMessage and Gemini
 
-Photon's iMessage bridge, guest intake, and the website account-linking API run together in a
+Photon's iMessage bridge, Gemini bill assistant, guest intake, and the website account-linking API run together in a
 long-running Node 24+ process. The repository root forwards npm commands here.
 
 ```sh
@@ -11,7 +11,7 @@ npm test
 npm start
 ```
 
-Configure Photon credentials locally in `more-time/.env` or the process environment.
+Configure Photon credentials and `GEMINI_API_KEY` locally in `more-time/.env` or the process environment.
 Guest intake needs no sign-in provider. Set exact allowed website origins;
 defaults include `http://localhost:8000` and `http://127.0.0.1:8000`. To enable the
 separate account endpoints, also configure the website's JWT public-key URL,
@@ -28,7 +28,7 @@ The API starts on `127.0.0.1:8080` by default and includes:
 - `GET /health` — health check.
 
 Read the [guest intake guide](../landing/INTAKE_INTEGRATION.md) for the landing-page
-contract, local setup, storage lifecycle, and future agent handoff. The
+contract, local setup, storage lifecycle, and agent handoff. The
 [account-linking guide](docs/landing-page-integration.md) covers the separate JWT
 endpoints and Photon shared-number behavior. Live delivery needs configured
 credentials and an eligible recipient. Guest status tokens cannot access accounts.
@@ -36,7 +36,14 @@ credentials and an eligible recipient. Guest status tokens cannot access account
 Links and message deduplication receipts persist in a gitignored SQLite database
 under `data/`. Use a persistent volume and one running replica when deploying.
 
-The message loop handles connection requests. Website-uploaded bills are stored
-and associated with the verified conversation. Attachments arriving through
-iMessage are not downloaded, and no resolution agent is called yet.
+After verification, Gemini extracts bill facts and replies in the same iMessage
+conversation. Follow-up questions use persisted bill facts, the document and the
+last ten turns. Website uploads and direct iMessage PDF/image attachments work.
+Without `GEMINI_API_KEY`, verification works but analysis remains disabled.
+Read [Gemini setup](docs/gemini-setup.md), or run `npm run gemini:check` from the
+root to check Gemini independently without sending an iMessage.
+
+The assistant can explain bills and draft requests; contacting billers, policy
+retrieval and scheduled follow-ups are not implemented. Reply STOP to disconnect
+and remove the saved case from the active database.
 Run `npm run dev` for automatic restart after source edits.

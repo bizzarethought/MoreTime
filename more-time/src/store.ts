@@ -56,9 +56,12 @@ export class LinkStore {
       );
       CREATE TABLE IF NOT EXISTS message_receipts (
         message_id TEXT PRIMARY KEY, reply TEXT NOT NULL,
-        reply_sent INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL
+        reply_sent INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL,
+        user_id TEXT
       );
     `);
+    const columns = this.db.prepare("PRAGMA table_info(message_receipts)").all();
+    if (!columns.some(column => column.name === "user_id")) this.db.exec("ALTER TABLE message_receipts ADD COLUMN user_id TEXT");
   }
 
   private transaction<T>(fn: () => T): T {
@@ -98,6 +101,9 @@ export class LinkStore {
   }
 
   revokeCode(code: string): void { this.db.prepare("DELETE FROM link_challenges WHERE code_hash = ?").run(hash(code)); }
+  cancelChallengesForSender(address: string): void {
+    this.db.prepare("DELETE FROM link_challenges WHERE expected_address = ?").run(address);
+  }
   connectionForUser(userId: string): Connection | undefined {
     return this.db.prepare("SELECT * FROM connections WHERE user_id = ?").get(userId) as Connection | undefined;
   }
@@ -139,9 +145,26 @@ export class LinkStore {
       } else {
         reply = "Your MoreTime account is connected. The messaging connection is ready; the bill-resolution assistant is still being connected.";
       }
-      this.db.prepare("INSERT INTO message_receipts VALUES (?, ?, 0, ?)").run(message.id, reply, this.now());
+      this.db.prepare("INSERT INTO message_receipts (message_id, reply, reply_sent, created_at) VALUES (?, ?, 0, ?)").run(message.id, reply, this.now());
       return { reply, alreadySent: false };
     });
+  }
+
+  replyForMessage(id: string): { reply: string; alreadySent: boolean } | undefined {
+    const receipt = this.db.prepare("SELECT reply, reply_sent FROM message_receipts WHERE message_id = ?").get(id) as Receipt | undefined;
+    return receipt ? { reply: receipt.reply, alreadySent: receipt.reply_sent === 1 } : undefined;
+  }
+
+  cacheReply(id: string, reply: string, userId?: string): { reply: string; alreadySent: boolean } {
+    this.db.prepare(`INSERT INTO message_receipts (message_id, reply, reply_sent, created_at, user_id)
+      VALUES (?, ?, 0, ?, ?) ON CONFLICT(message_id) DO UPDATE SET
+      reply = excluded.reply, user_id = excluded.user_id WHERE message_receipts.reply_sent = 0
+    `).run(id, reply, this.now(), userId ?? null);
+    return this.replyForMessage(id)!;
+  }
+
+  removeRepliesForUser(userId: string): void {
+    this.db.prepare("DELETE FROM message_receipts WHERE user_id = ?").run(userId);
   }
 
   markReplySent(id: string): void { this.db.prepare("UPDATE message_receipts SET reply_sent = 1 WHERE message_id = ?").run(id); }
