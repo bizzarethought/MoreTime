@@ -7,6 +7,7 @@
     "dev": "npm --prefix more-time run dev",
     "typecheck": "npm --prefix more-time run typecheck",
     "gemini:check": "npm --prefix more-time run gemini:check --",
+    "gemini:eval": "npm --prefix more-time run gemini:eval --",
     "test": "npm --prefix more-time test && node --test scripts/run.test.mjs",
     "run": "bash run.sh"
   }

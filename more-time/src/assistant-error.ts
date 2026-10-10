@@ -22,6 +22,11 @@ export function assistantErrorCode(error: unknown): string {
       case "gemini_incomplete_response": return "incomplete_model_response";
       case "unsupported_document":
       case "invalid_document": return "unsupported_document";
+      case "invalid_case_update": return "invalid_case_update";
+      case "invalid_fact_reference": return "invalid_fact_reference";
+      case "invalid_contact_reference":
+      case "unsupported_contact_detail": return "unsupported_contact_detail";
+      case "unsupported_action_claim": return "unsupported_action_claim";
     }
   }
   return "unknown_error";

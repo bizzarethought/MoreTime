@@ -6,7 +6,7 @@ MoreTime is a hackathon project for people dealing with overdue bills, utility s
 
 - Upload a PDF or bill image up to 10 MB, or describe the problem. Add a U.S. phone number and ZIP code or state. No account needed.
 - Save those details and connect the conversation through Photon’s iMessage integration by replying with a verification code.
-- After verification, Gemini reads the saved bill and answers follow-up questions in the same chat, using saved bill facts and the last ten conversation turns. This requires a configured Gemini API key.
+- After verification, Gemini reads the saved bill and answers follow-up questions in the same chat, using saved bill facts, persistent case memory and the last ten conversation turns. Structured replies include a next step and contact guidance, with printed contacts labeled as unverified current. This requires a configured Gemini API key.
 - Send an updated bill directly in iMessage, or reply STOP to disconnect and remove the saved case from the active database.
 - Try the landing page’s sample conversations about shutoffs, payment plans, and disputed bills.
 
@@ -96,6 +96,8 @@ Check Gemini independently with `npm run gemini:check`. This sends a fictional
 text example to Gemini and prints extracted facts and a reply, without opening
 Photon or sending an iMessage. See [Gemini setup](more-time/docs/gemini-setup.md)
 for the sample PDF command, storage behavior, and current limits.
+Read the [structured prompt guide](more-time/docs/structured-prompt-engine.md) for
+case memory, tone, output rules and the fictional `npm run gemini:eval` benchmark.
 
 ## Next
 

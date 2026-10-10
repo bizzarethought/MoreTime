@@ -4,6 +4,7 @@ import { IntakeStore } from "./intake-store.ts";
 import { LinkStore } from "./store.ts";
 import type { IncomingMessage } from "./store.ts";
 import { assistantErrorCode } from "./assistant-error.ts";
+import { caseForNewDocument, emptyCase } from "./case.ts";
 
 export function createMessageHandler(options: {
   store: LinkStore;
@@ -57,19 +58,21 @@ export function createMessageHandler(options: {
         ? "Help me understand the bill I submitted. Confirm the important details and ask what you need to help me next."
         : message.text?.trim() || "Help me understand this bill and confirm the important details.";
       const input = {
-        details: intake?.details ?? "", state: intake?.state ?? null, zipCode: intake?.zipCode ?? null,
+        details: incomingDocument ? "" : session?.details ?? intake?.details ?? "", state: intake?.state ?? null, zipCode: intake?.zipCode ?? null,
         document, history: options.conversations.history(userId), question,
+        caseState: incomingDocument ? caseForNewDocument(session?.caseState ?? emptyCase()) : session?.caseState,
       };
       stage = !session || incomingDocument ? "analyze_bill" : "answer_question";
       const analysis = !session || incomingDocument
         ? await options.engine.analyze(input)
-        : { bill: session.bill, reply: await options.engine.answer({ ...input, bill: session.bill }) };
+        : options.engine.respond ? await options.engine.respond({ ...input, bill: session.bill })
+          : { bill: session.bill, reply: await options.engine.answer({ ...input, bill: session.bill }), caseState: session.caseState };
       if (options.store.connectionForSender(message.sender)?.user_id !== userId) {
         return options.store.cacheReply(message.id, "This conversation is no longer connected. Start a new request on the website to reconnect.");
       }
       const reply = (connectionReply ? connectionReply + "\n\n" : "") + analysis.reply;
       stage = "save_reply";
-      options.conversations.complete({ userId, messageId: message.id, question, reply, bill: analysis.bill, document });
+      options.conversations.complete({ userId, messageId: message.id, question, reply, bill: analysis.bill, document, caseState: analysis.caseState ?? input.caseState, details: input.details });
       return options.store.cacheReply(message.id, reply, userId);
     } catch (error) {
       // Never log SDK errors: they may contain document text or credentials.

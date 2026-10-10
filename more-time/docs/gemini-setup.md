@@ -54,7 +54,7 @@ This command makes a **real Gemini API request**, using a fictional text example
 It prints extraction and a reply; it does not open Photon or send any iMessages:
 
 ```sh
-
+npm run gemini:check
 ```
 
 To test the repository's fictional PDF, run this from the repository root. The
@@ -89,7 +89,7 @@ Stop the running backend with Ctrl+C and restart `npm start` from the repository
 root. Environment changes are loaded on startup. Ask a new question in the existing
 connected chat; you do not need another CONNECT code.
 
-Confirm startup prints `Gemini runtime: version=2 saved_facts_first=true` with
+Confirm startup prints `Gemini runtime: version=3 prompt=structured-v1 saved_facts_first=true` with
 `chat_timeout_ms=30000` (unless explicitly configured otherwise). This identifies
 the new process and its effective timeout without exposing credentials.
 
@@ -122,7 +122,7 @@ Photon echo demo and stop that demo; keep one MoreTime backend running.
   remain null. Runtime validation rejects malformed output, impossible dates,
   unsupported critical facts, and incomplete responses. Extraction still needs
   user confirmation; source quotes are model-generated, not independent OCR proof.
-- Follow-ups first use saved facts and the most recent ten conversation turns.
+- Follow-ups first use saved facts, persistent user case memory and the most recent ten conversation turns.
   Gemini can request the original/latest document when it needs source details
   absent from that context. The server then makes a second request with the retained
   document inline. General questions avoid reprocessing large packets every turn.
@@ -162,6 +162,8 @@ Automated tests inject fake model responses and cover schema validation, verific
 gating, conversation isolation/persistence, duplicates, failures/retries, STOP,
 disconnect during analysis, and bounded attachment streams. They do not establish
 model accuracy. Live Gemini and Photon checks require your configured credentials.
+See [the structured prompt guide](structured-prompt-engine.md) for the current
+response contract, source/contact rules, tone, remembered case and live evaluation.
 
 References: [Google GenAI SDK](https://ai.google.dev/gemini-api/docs/libraries),
 [Gemini 3.8 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash),
@@ -173,11 +175,12 @@ References: [Google GenAI SDK](https://ai.google.dev/gemini-api/docs/libraries),
 ## Public web research
 
 Contact, policy, assistance and legal questions request a separate Gemini call with
-`tools: [{ googleSearch: {} }]`. The default research model is the configured bill
-analysis model (`gemini-3.8-flash` by default). Optional settings:
+`tools: [{ googleSearch: {} }]`. The combined branch defaults research to `gemini-2.5-flash`, which currently
+supports a free-tier Search allowance; extraction and chat keep their existing
+models. Optional settings:
 
 ```dotenv
-GEMINI_RESEARCH_MODEL=gemini-3.8-flash
+GEMINI_RESEARCH_MODEL=gemini-2.5-flash
 GEMINI_RESEARCH_TIMEOUT_MS=120000
 ```
 
@@ -214,13 +217,35 @@ Try: “Who do I contact about assistance?”, “What does debt validation mean
 jurisdiction should prompt clarification instead of selecting a similarly named
 biller or assuming ZIP code alone establishes applicable law.
 
-### Integrating with the structured-prompt branch
+### Combined testing branch
 
-This work is isolated on `gemini-web-grounding`, based on `main`; it does not modify
-or run the other task's checkout. Both branches edit `src/gemini.ts`, so integration
-may need a conflict resolution. Keep the structured case/response contract and add
-its research hook around `needsPolicyLookup`. Reuse `researchWeb`, `researchContext`
-and `citeResearch` from `src/web-research.ts`; add a public `researchQuery` to the
-routing response and `sourceIds` to the researched response. Preserve document
-contact indices separately from web source IDs. Replace the structured prompt's
-“no web tool” instruction with the evidence-aware instructions in this branch.
+The resolved integration is on `test/combined-websearch-structureprompt` in
+`~/MoreTime/.worktrees/combined-test`. It includes both feature commits without
+changing main or either original feature branch. Structured case memory, statement
+selection, extraction evidence validation, contact indices and action safeguards
+remain in place. Public contact details must appear in cited research passages;
+web source IDs do not become document contact indices. Search failures return a
+fixed application-generated response, so legal claims cannot be filled in from
+model memory after a failed lookup.
+
+Run offline checks from that worktree:
+
+```sh
+npm run typecheck
+npm test
+```
+
+With `GEMINI_API_KEY` already exported, run synthetic live checks (no Photon or
+real case/database access):
+
+```sh
+npm --prefix more-time run gemini:combined-check
+```
+
+Add `-- official-contact legal-term` to test just the research questions.
+`GEMINI_RESEARCH_MODEL` can select another supported research model. Search quota
+is project/model dependent; successful normal chat does not prove Search access.
+See Google's [pricing](https://ai.google.dev/gemini-api/docs/pricing) and
+[rate limits](https://ai.google.dev/gemini-api/docs/rate-limits). In this session,
+3.8 Flash and 3.5 Flash-Lite research returned 429, and 2.5 Flash-Lite was not
+available to the project. Gemini 2.5 Flash returned grounding metadata.

@@ -12,6 +12,7 @@ import { IntakeStore, intakeIdentity } from "../src/intake-store.ts";
 import { LinkStore } from "../src/store.ts";
 import { readMessageDocument } from "../src/photon.ts";
 import type { AssistantInput, BillEngine, BillFacts } from "../src/gemini.ts";
+import { budgetCase } from "./structured-fixtures.ts";
 
 const bill: BillFacts = {
   biller: "Fictional Electric", billType: "utility", noticeType: "overdue", amountDue: 180,
@@ -139,6 +140,7 @@ test("a new iMessage bill is read only for a verified sender and replaces the do
   await h.handle({ ...h.message("verified-photo", "This is the new bill"), attachment: true }, loader);
   assert.equal(reads, 1); assert.equal(calls.length, 2);
   assert.equal(h.conversations.session(h.identity.userId)?.document?.name, "new.png");
+  assert.equal(h.conversations.session(h.identity.userId)?.details, "");
 });
 
 test("disconnect during a Gemini request discards the generated private response", async (t) => {
@@ -184,4 +186,21 @@ test("existing four-column receipt databases migrate without losing replies", (t
   migrated.removeRepliesForUser("user");
   assert.equal(migrated.replyForMessage("new-message"), undefined);
   assert.equal(migrated.replyForMessage("old-message")?.reply, "Existing reply");
+});
+
+test("the iMessage handler persists structured responses, forwards case memory and clears it on STOP", async t => {
+  const inputs: AssistantInput[] = [];
+  const state = budgetCase();
+  const h = harness(t, {
+    async analyze() { return { bill, reply: "A bill summary", caseState: state }; },
+    async answer() { throw new Error("The legacy answer path must not be used"); },
+    async respond(input) { inputs.push(input); return { bill: { ...bill, amountDue: 120 }, reply: "A revised proposal", caseState: input.caseState }; },
+  });
+  await h.handle(h.message("structured-connect", h.code));
+  await h.handle(h.message("structured-question", "Use my budget"));
+  assert.deepEqual(inputs[0]?.caseState, state);
+  assert.equal(h.conversations.session(h.identity.userId)?.bill.amountDue, 120);
+  assert.deepEqual(h.conversations.session(h.identity.userId)?.caseState, state);
+  await h.handle(h.message("structured-stop", "STOP"));
+  assert.equal(h.conversations.session(h.identity.userId), undefined);
 });
