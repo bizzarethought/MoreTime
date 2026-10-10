@@ -1,7 +1,7 @@
 # MoreTime
 
 Tentative name: **MoreTime**  
-Pitch: **Text us the bill you can't afford. We help you understand your options, prepare your request, and follow the case toward resolution.**
+Pitch: **Text us the bill or shutoff notice. We help you discover protections, find available relief, and take the next step.**
 
 ## Current status
 
@@ -15,7 +15,11 @@ The landing page uses plain HTML, CSS, and JavaScript with no dependencies. Open
 python3 -m http.server 8000 --directory landing/dist
 ```
 
-Visit http://localhost:8000. Choose one of three fictional situations, continue to a sample follow-up, and replay the conversation. The preview does not send or save messages or accept real bills. Animation respects reduced-motion preferences and can also be paused in the navigation.
+Visit http://localhost:8000. Choose one of three fictional situations and move through three stages: share details, explore a relevant option, and get a call script or written request. Earlier messages remain in the conversation, and finished drafts can be copied. “Start with a conversation” opens an intake preview for a bill attachment and/or text, a U.S. phone number, and a ZIP code (or state). It validates the fields and shows a review; files and details stay in the current page and are cleared when the popup closes. Nothing is uploaded, saved, or sent, and the messaging handoff is disabled until the separate integration is ready. Animation respects reduced-motion preferences and can also be paused in the navigation.
+
+In “This bill can’t be right,” select **Attach the sample bill** to add a fictional PDF to the conversation. Open the attachment, confirm its details, and continue to a billing-review draft. The PDF and thumbnail are generated from `landing/sample-bill.json` with `python3 landing/scripts/generate-sample-bill.py`.
+
+The examples focus on utility shutoff protection, deferred payment rights, and disputed charges. They use explicitly labeled New Jersey scenarios with links to official regulator guidance. New Jersey is the demonstration jurisdiction; the live MVP jurisdiction still needs to be selected. See [content sources](landing/CONTENT_SOURCES.md).
 
 The headline, “Life’s bigger than a bill,” has an animated circle that redraws on hover. The artwork floats and responds to desktop pointer movement, while primary buttons slowly change color. Icons use locally hosted Material Symbols; their license and source details are in the asset notes.
 
@@ -41,23 +45,25 @@ git diff -- README.md
 
 ## Concept
 
-MoreTime is a conversational notice-resolution assistant delivered through iMessage. A user sends a bill or notice, describes their circumstances, and receives grounded guidance and help preparing their next action. The assistant remembers the case and adapts when the user reports a refusal, an offer, a missing document, or a new deadline.
+MoreTime is a planned conversational notice-resolution assistant delivered through iMessage, focused on utilities and essential services. A user sends a bill or shutoff notice, shares their location and circumstances, and gets help discovering applicable consumer protections, assistance programs, and options for more time. The assistant helps prepare the next action and tracks the case through refusals, offers, missing documents, and new deadlines.
+
+The core value is helping people discover rights and relief they may not know exist. Recommendations must connect the user's situation to a verified local rule or program, explain its conditions, and distinguish possible eligibility from confirmed protection. Eviction was an illustration of this broader idea; it is not the product's primary focus.
 
 The aim is to build a useful agent with a credible ML evaluation and a strong live demonstration, while avoiding custom web frontend work.
 
 ## Hackathon MVP
 
-- Support one notice category initially: choose medical bills or utility overdue notices.
+- Start with utility overdue and shutoff notices; select one jurisdiction and utility service for the MVP.
 - Receive a photo or PDF and follow-up texts through a messaging integration.
 - Extract the sender, balance, notice type, and separately identified deadlines.
-- Confirm critical or uncertain facts with the user.
+- Confirm critical or uncertain facts, including location, utility provider, service type, and notice dates.
 - Ask about affordability and relevant circumstances.
-- Retrieve options from a small, verified set of policy documents.
+- Retrieve protections and relief from a small, verified set of regulator guidance, applicable rules, assistance programs, and provider policies.
 - Explain supported options and draft a call script or written request.
 - Track offers, refusals, requested documents, actions, and confirmed dates.
 - Present the next step within the conversation.
 
-Initial scope is helping the user take action. Direct negotiation with providers, payments, and broad legal coverage are future directions.
+Initial scope is helping the user understand applicable utility protections and take action. Direct negotiation with providers, payments, legal representation, and coverage beyond the supported jurisdiction are outside the MVP.
 
 ## Interface and architecture
 
@@ -66,7 +72,7 @@ Initial scope is helping the user take action. Direct negotiation with providers
 - **Messaging:** Evaluate Photon first because it was suggested for the project. Verify current API access, incoming attachments, outgoing replies, and webhook behavior before committing. Provider suitability is not yet established.
 - **Backend:** A small Python service handles incoming events and coordinates processing. Handle duplicate events so repeated delivery does not create duplicate case updates.
 - **Document processing:** A vision-capable model or OCR plus extraction produces structured facts. Preserve document evidence and distinguish missing information from inferred information.
-- **Resolution agent:** An LLM asks questions, retrieves policy evidence, explains options, and drafts messages.
+- **Resolution agent:** An LLM asks questions, retrieves evidence for the correct jurisdiction and provider, explains protections and relief, and drafts requests or disputes.
 - **Case logic:** Code validates dates, calculates payments, and controls state transitions. Proposed changes are distinct from confirmed agreements.
 - **Storage:** Persist case facts, messages, source documents, policy references, action history, and next steps.
 
@@ -168,7 +174,7 @@ Also test a case where the correct response is to ask for a clearer image or add
 
 ## Decisions still open
 
-- Medical bills or utility overdue notices?
+- Which jurisdiction, utility service, and providers should the live MVP support?
 - Messaging provider and attachment support?
 - Event classifier plus extraction, or generative structured-update fine-tuning?
 - Compute availability and team responsibilities within the 24-hour hackathon?

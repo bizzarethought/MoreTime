@@ -1,0 +1,13 @@
+{
+  "fictional": true,
+  "provider": "Example Electric",
+  "service": "Electricity",
+  "state": "New Jersey",
+  "account": "DEMO-0001",
+  "billing_period": "September 1 - September 30, 2026",
+  "issue_date": "October 1, 2026",
+  "due_date": "October 20, 2026",
+  "current_amount": 286,
+  "previous_amount": 143,
+  "meter_reading_type": "Estimated"
+}

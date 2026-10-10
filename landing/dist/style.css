@@ -2,757 +2,1363 @@
   --blue:#1959e8;
   --ink:#202124;
   --gray:#62666d;
-  --line:#e7e9ed}
-  *{
-    box-sizing:border-box}
-    html{
-      scroll-behavior:smooth;
-      scroll-padding-top:40px}
-      body{
-        margin:0;
-        background:#fff;
-        color:var(--ink);
-        font-family:'Helvetica Neue',Arial,sans-serif;
-        -webkit-font-smoothing:antialiased}
-        a{
-          color:inherit;
-          text-decoration:none}
-          button{
-            font:inherit;
-            cursor:pointer}
-            a:focus-visible,button:focus-visible{
-              outline:3px solid #1959e8;
-              outline-offset:5px}
-              .nav{
-                height:92px;
-                padding:0 5%;
-                display:flex;
-                align-items:center;
-                justify-content:space-between;
-                border-bottom:1px solid #f0f1f3}
-                .wordmark{
-                  font-size:27px;
-                  letter-spacing:-1.2px;
-                  font-weight:600;
-                  display:flex;
-                  gap:10px;
-                  align-items:center}
-                  .logo{
-                    display:flex;
-                    gap:3px;
-                    align-items:center;
-                    height:27px;
-                    transform:rotate(-12deg)}
-                    .logo i{
-                      display:block;
-                      background:var(--blue);
-                      width:7px;
-                      height:23px;
-                      border-radius:5px}
-                      .logo i:nth-child(2){
-                        height:30px;
-                        background:#ea493d}
-                        .logo i:nth-child(3){
-                          height:18px;
-                          background:#f8bd36}
-                          .nav-right{
-                            display:flex;
-                            align-items:center;
-                            gap:35px;
-                            font-size:14px}
-                            .button{
-                              background:var(--blue);
-                              color:#fff;
-                              display:inline-flex;
-                              align-items:center;
-                              gap:28px;
-                              padding:18px 25px;
-                              border-radius:8px;
-                              font-size:15px;
-                              font-weight:500;
-                              transition:background .2s,transform .2s}
-                              .button:hover{
-                                transform:translateY(-2px)}
-                                .button span{
-                                  font-size:20px}
-                                  .button.small{
-                                    padding:12px 18px;
-                                    font-size:13px;
-                                    gap:22px}
-                                    .hero{
-                                      text-align:center;
-                                      padding:64px 20px 0;
-                                      overflow:hidden}
-                                      .eyebrow{
-                                        font-size:11px;
-                                        letter-spacing:1.8px;
-                                        font-weight:600;
-                                        display:flex;
-                                        justify-content:center;
-                                        align-items:center;
-                                        gap:9px}
-                                        h1{
-                                          font-size:clamp(56px,6.9vw,100px);
-                                          font-weight:500;
-                                          letter-spacing:-6px;
-                                          line-height:1.08;
-                                          margin:26px 0}
-                                          .blue{
-                                            color:var(--blue)}
-                                            .lead{
-                                              font-size:18px;
-                                              line-height:1.65;
-                                              color:var(--gray);
-                                              margin:24px 0}
-                                              .caption{
-                                                font-size:11px;
-                                                color:#74777e;
-                                                margin-top:15px}
-                                                .hero-art{
-                                                  max-width:960px;
-                                                  height:490px;
-                                                  position:relative;
-                                                  margin:5px auto 0}
-                                                  .hero-art img{
-                                                    width:100%;
-                                                    height:100%;
-                                                    object-fit:contain;
-                                                    display:block}
-                                                    .floating{
-                                                      position:absolute;
-                                                      font-size:18px;
-                                                      box-shadow:0 8px 25px #1d3e7810;
-                                                      animation:bob 7s ease-in-out infinite}
-                                                      .chat-blue{
-                                                        background:var(--blue);
-                                                        color:white;
-                                                        top:16%;
-                                                        left:8%;
-                                                        padding:22px 29px;
-                                                        border-radius:28px 28px 4px 28px;
-                                                        transform:rotate(-6deg);
-                                                        --rotation:-6deg}
-                                                        .chat-white{
-                                                          background:#f1f4f9;
-                                                          right:2%;
-                                                          bottom:27%;
-                                                          padding:20px 26px;
-                                                          border-radius:28px 28px 28px 4px;
-                                                          --rotation:5deg;
-                                                          animation-delay:-3s;
-                                                          display:flex;
-                                                          align-items:center;
-                                                          gap:12px}
-                                                          .mini-logo{
-                                                            font-size:24px;
-                                                            color:var(--blue);
-                                                            font-weight:700;
-                                                            letter-spacing:-2px}
-                                                            .tiny-bubble{
-                                                              display:flex;
-                                                              gap:5px;
-                                                              background:#e8f0fe;
-                                                              padding:17px 20px;
-                                                              right:12%;
-                                                              top:19%;
-                                                              border-radius:24px 24px 24px 3px;
-                                                              animation-delay:-1s}
-                                                              .tiny-bubble i{
-                                                                width:7px;
-                                                                height:7px;
-                                                                background:#6388cf;
-                                                                border-radius:50%;
-                                                                animation:dot 1.4s infinite}
-                                                                .tiny-bubble i:nth-child(2){
-                                                                  animation-delay:.2s}
-                                                                  .tiny-bubble i:nth-child(3){
-                                                                    animation-delay:.4s}
-                                                                    @keyframes bob{
-                                                                      0%,100%{
-                                                                        transform:translateY(0) rotate(var(--rotation,0deg))}
-                                                                        50%{
-                                                                          transform:translateY(-13px) rotate(var(--rotation,0deg))}
-                                                                        }
-                                                                        @keyframes dot{
-                                                                          0%,70%,100%{
-                                                                            opacity:.4;
-                                                                            transform:translateY(0)}
-                                                                            35%{
-                                                                              opacity:1;
-                                                                              transform:translateY(-4px)}
-                                                                            }
-                                                                            .try-section{
-                                                                              background:#f7f9fc;
-                                                                              padding:80px max(5%,calc((100vw - 1130px)/2)) 90px}
-                                                                              .try-heading{
-                                                                                text-align:center}
-                                                                                h2{
-                                                                                  font-size:clamp(34px,3.8vw,52px);
-                                                                                  line-height:1.16;
-                                                                                  font-weight:500;
-                                                                                  letter-spacing:-2px;
-                                                                                  margin:17px 0}
-                                                                                  .try-heading>p:last-child{
-                                                                                    color:var(--gray);
-                                                                                    font-size:16px}
-                                                                                    .playground{
-                                                                                      display:grid;
-                                                                                      grid-template-columns:1fr 1fr;
-                                                                                      gap:65px;
-                                                                                      align-items:center;
-                                                                                      margin-top:50px}
-                                                                                      .situations{
-                                                                                        display:flex;
-                                                                                        flex-direction:column;
-                                                                                        gap:12px}
-                                                                                        .scenario{
-                                                                                          display:flex;
-                                                                                          align-items:center;
-                                                                                          text-align:left;
-                                                                                          gap:17px;
-                                                                                          padding:22px 19px;
-                                                                                          border:1px solid transparent;
-                                                                                          background:transparent;
-                                                                                          border-radius:13px;
-                                                                                          color:var(--ink);
-                                                                                          transition:background .2s,border .2s,transform .2s}
-                                                                                          .scenario:hover{
-                                                                                            background:#edf1f8;
-                                                                                            transform:translateX(3px)}
-                                                                                            .scenario[aria-pressed=true]{
-                                                                                              background:white;
-                                                                                              border-color:#d5e1f8;
-                                                                                              box-shadow:0 5px 18px #253d6210}
-                                                                                              .scenario b{
-                                                                                                font-weight:500;
-                                                                                                font-size:18px;
-                                                                                                display:block}
-                                                                                                .scenario small{
-                                                                                                  display:block;
-                                                                                                  margin-top:7px;
-                                                                                                  font-size:12px;
-                                                                                                  color:var(--gray)}
-                                                                                                  .scenario-icon{
-                                                                                                    display:grid;
-                                                                                                    place-items:center;
-                                                                                                    width:44px;
-                                                                                                    height:48px;
-                                                                                                    border-radius:13px;
-                                                                                                    font-size:27px;
-                                                                                                    flex-shrink:0}
-                                                                                                    .blue-tint{
-                                                                                                      background:#e5eeff;
-                                                                                                      color:#2864df}
-                                                                                                      .yellow-tint{
-                                                                                                        background:#fff0c5;
-                                                                                                        color:#9b6e00}
-                                                                                                        .green-tint{
-                                                                                                          background:#dcf1e6;
-                                                                                                          color:#208054}
-                                                                                                          .arrow{
-                                                                                                            margin-left:auto;
-                                                                                                            font-size:20px;
-                                                                                                            color:var(--blue)}
-                                                                                                            .preview-note{
-                                                                                                              font-size:11px;
-                                                                                                              line-height:1.7;
-                                                                                                              color:#73777e;
-                                                                                                              padding-left:20px}
-                                                                                                              .chat-window{
-                                                                                                                background:white;
-                                                                                                                border:1px solid #e0e5ed;
-                                                                                                                border-radius:22px;
-                                                                                                                box-shadow:0 15px 45px #23416c09;
-                                                                                                                overflow:hidden}
-                                                                                                                .chat-header{
-                                                                                                                  display:flex;
-                                                                                                                  align-items:center;
-                                                                                                                  gap:11px;
-                                                                                                                  padding:20px 24px;
-                                                                                                                  border-bottom:1px solid #f0f1f4}
-                                                                                                                  .avatar{
-                                                                                                                    width:36px;
-                                                                                                                    height:36px;
-                                                                                                                    border-radius:50%;
-                                                                                                                    background:#e9f0ff;
-                                                                                                                    color:var(--blue);
-                                                                                                                    display:grid;
-                                                                                                                    place-items:center;
-                                                                                                                    font-size:23px;
-                                                                                                                    letter-spacing:-2px;
-                                                                                                                    font-weight:700}
-                                                                                                                    .chat-header strong{
-                                                                                                                      font-size:13px;
-                                                                                                                      font-weight:500}
-                                                                                                                      .chat-header small{
-                                                                                                                        display:block;
-                                                                                                                        font-size:10px;
-                                                                                                                        color:var(--gray);
-                                                                                                                        margin-top:4px}
-                                                                                                                        .demo-tag{
-                                                                                                                          margin-left:auto;
-                                                                                                                          color:#7c8490;
-                                                                                                                          letter-spacing:1.5px;
-                                                                                                                          font-size:9px}
-                                                                                                                          .messages{
-                                                                                                                            display:flex;
-                                                                                                                            flex-direction:column;
-                                                                                                                            gap:18px;
-                                                                                                                            padding:27px 23px;
-                                                                                                                            min-height:330px}
-                                                                                                                            .message{
-                                                                                                                              padding:16px 19px;
-                                                                                                                              font-size:14px;
-                                                                                                                              line-height:1.65;
-                                                                                                                              max-width:90%;
-                                                                                                                              animation:arrive .4s ease both}
-                                                                                                                              .message.user{
-                                                                                                                                align-self:flex-end;
-                                                                                                                                background:var(--blue);
-                                                                                                                                color:white;
-                                                                                                                                border-radius:20px 20px 4px 20px}
-                                                                                                                                .message.agent{
-                                                                                                                                  background:#f1f3f5;
-                                                                                                                                  border-radius:20px 20px 20px 4px;
-                                                                                                                                  animation-delay:.1s}
-                                                                                                                                  .next-step{
-                                                                                                                                    display:flex;
-                                                                                                                                    gap:10px;
-                                                                                                                                    margin:4px 5px 0}
-                                                                                                                                    .next-step small{
-                                                                                                                                      font-size:9px;
-                                                                                                                                      letter-spacing:1px;
-                                                                                                                                      color:#347659;
-                                                                                                                                      font-weight:700}
-                                                                                                                                      .next-step p{
-                                                                                                                                        font-size:12px;
-                                                                                                                                        line-height:1.6;
-                                                                                                                                        margin:5px 0 0;
-                                                                                                                                        color:var(--gray)}
-                                                                                                                                        @keyframes arrive{
-                                                                                                                                          from{
-                                                                                                                                            opacity:0;
-                                                                                                                                            transform:translateY(8px)}
-                                                                                                                                            to{
-                                                                                                                                              opacity:1;
-                                                                                                                                              transform:translateY(0)}
-                                                                                                                                            }
-                                                                                                                                            .how{
-                                                                                                                                              max-width:1130px;
-                                                                                                                                              margin:auto;
-                                                                                                                                              padding:110px 0;
-                                                                                                                                              display:grid;
-                                                                                                                                              grid-template-columns:1fr 1fr;
-                                                                                                                                              gap:95px}
-                                                                                                                                              .how .eyebrow{
-                                                                                                                                                justify-content:flex-start}
-                                                                                                                                                .how-title h2 span{
-                                                                                                                                                  color:#8b9098}
-                                                                                                                                                  .how-title>p:last-child{
-                                                                                                                                                    font-size:16px;
-                                                                                                                                                    color:var(--gray);
-                                                                                                                                                    line-height:1.8;
-                                                                                                                                                    max-width:350px}
-                                                                                                                                                    .how-rows article{
-                                                                                                                                                      display:flex;
-                                                                                                                                                      gap:24px;
-                                                                                                                                                      padding:24px 0;
-                                                                                                                                                      border-bottom:1px solid var(--line)}
-                                                                                                                                                      .how-rows article:first-child{
-                                                                                                                                                        padding-top:0}
-                                                                                                                                                        .number{
-                                                                                                                                                          font-size:12px;
-                                                                                                                                                          color:var(--blue);
-                                                                                                                                                          padding-top:5px}
-                                                                                                                                                          h3{
-                                                                                                                                                            font-size:20px;
-                                                                                                                                                            font-weight:500;
-                                                                                                                                                            letter-spacing:-.4px;
-                                                                                                                                                            margin:0 0 10px}
-                                                                                                                                                            .how-rows p{
-                                                                                                                                                              font-size:14px;
-                                                                                                                                                              line-height:1.8;
-                                                                                                                                                              color:var(--gray);
-                                                                                                                                                              margin:0}
-                                                                                                                                                              .closing{
-                                                                                                                                                                max-width:1230px;
-                                                                                                                                                                margin:0 auto 80px;
-                                                                                                                                                                border-radius:24px;
-                                                                                                                                                                background:#eaf1fe;
-                                                                                                                                                                padding:65px;
-                                                                                                                                                                display:flex;
-                                                                                                                                                                align-items:center;
-                                                                                                                                                                gap:65px}
-                                                                                                                                                                .closing-shape{
-                                                                                                                                                                  width:150px;
-                                                                                                                                                                  height:150px;
-                                                                                                                                                                  flex-shrink:0;
-                                                                                                                                                                  border-radius:43% 43% 43% 5%;
-                                                                                                                                                                  background:#fbc447;
-                                                                                                                                                                  color:#fff;
-                                                                                                                                                                  font-size:120px;
-                                                                                                                                                                  text-align:center;
-                                                                                                                                                                  line-height:145px;
-                                                                                                                                                                  transform:rotate(-9deg)}
-                                                                                                                                                                  .closing h2{
-                                                                                                                                                                    font-size:37px;
-                                                                                                                                                                    margin-top:0;
-                                                                                                                                                                    letter-spacing:-1.5px}
-                                                                                                                                                                    .closing .button{
-                                                                                                                                                                      margin-top:12px}
-                                                                                                                                                                      footer{
-                                                                                                                                                                        padding:40px 5%;
-                                                                                                                                                                        border-top:1px solid var(--line);
-                                                                                                                                                                        display:flex;
-                                                                                                                                                                        align-items:center;
-                                                                                                                                                                        justify-content:space-between;
-                                                                                                                                                                        gap:30px}
-                                                                                                                                                                        footer .wordmark{
-                                                                                                                                                                          font-size:21px;
-                                                                                                                                                                          gap:0}
-                                                                                                                                                                          footer p{
-                                                                                                                                                                            font-size:11px;
-                                                                                                                                                                            line-height:1.8;
-                                                                                                                                                                            color:#747980}
-                                                                                                                                                                            footer>a:last-child{
-                                                                                                                                                                              font-size:12px;
-                                                                                                                                                                              color:var(--blue)}
-                                                                                                                                                                              @media(min-width:1450px){
-                                                                                                                                                                                .hero-art{
-                                                                                                                                                                                  height:530px}
-                                                                                                                                                                                }
-                                                                                                                                                                                @media(max-width:1200px){
-                                                                                                                                                                                  .how{
-                                                                                                                                                                                    padding:80px 6%;
-                                                                                                                                                                                    gap:60px}
-                                                                                                                                                                                    .closing{
-                                                                                                                                                                                      margin:0 5% 60px}
-                                                                                                                                                                                      .playground{
-                                                                                                                                                                                        gap:35px}
-                                                                                                                                                                                      }
-                                                                                                                                                                                      @media(max-width:760px){
-                                                                                                                                                                                        .nav{
-                                                                                                                                                                                          height:76px}
-                                                                                                                                                                                          .nav-right>a[href="#how"]{
-                                                                                                                                                                                            display:none}
-                                                                                                                                                                                            .wordmark{
-                                                                                                                                                                                              font-size:23px}
-                                                                                                                                                                                              .hero{
-                                                                                                                                                                                                padding-top:43px}
-                                                                                                                                                                                                h1{
-                                                                                                                                                                                                  font-size:clamp(43px,8.9vw,68px);
-                                                                                                                                                                                                  letter-spacing:-3px}
-                                                                                                                                                                                                  .lead{
-                                                                                                                                                                                                    font-size:16px}
-                                                                                                                                                                                                    .hero-art{
-                                                                                                                                                                                                      height:350px;
-                                                                                                                                                                                                      margin-top:25px}
-                                                                                                                                                                                                      .floating{
-                                                                                                                                                                                                        font-size:12px}
-                                                                                                                                                                                                        .chat-blue{
-                                                                                                                                                                                                          padding:15px 19px;
-                                                                                                                                                                                                          left:1%;
-                                                                                                                                                                                                          top:15%}
-                                                                                                                                                                                                          .chat-white{
-                                                                                                                                                                                                            padding:13px 16px;
-                                                                                                                                                                                                            right:0;
-                                                                                                                                                                                                            bottom:24%}
-                                                                                                                                                                                                            .mini-logo{
-                                                                                                                                                                                                              font-size:20px}
-                                                                                                                                                                                                              .tiny-bubble{
-                                                                                                                                                                                                                padding:12px 15px;
-                                                                                                                                                                                                                right:5%}
-                                                                                                                                                                                                                .tiny-bubble i{
-                                                                                                                                                                                                                  width:5px;
-                                                                                                                                                                                                                  height:5px}
-                                                                                                                                                                                                                  .try-section{
-                                                                                                                                                                                                                    padding:50px 6%}
-                                                                                                                                                                                                                    .playground{
-                                                                                                                                                                                                                      grid-template-columns:1fr;
-                                                                                                                                                                                                                      gap:20px;
-                                                                                                                                                                                                                      margin-top:30px}
-                                                                                                                                                                                                                      .scenario{
-                                                                                                                                                                                                                        padding:15px 12px}
-                                                                                                                                                                                                                        .scenario b{
-                                                                                                                                                                                                                          font-size:16px}
-                                                                                                                                                                                                                          .preview-note{
-                                                                                                                                                                                                                            margin-bottom:0}
-                                                                                                                                                                                                                            .messages{
-                                                                                                                                                                                                                              min-height:300px}
-                                                                                                                                                                                                                              .how{
-                                                                                                                                                                                                                                grid-template-columns:1fr;
-                                                                                                                                                                                                                                gap:30px;
-                                                                                                                                                                                                                                padding:65px 7%}
-                                                                                                                                                                                                                                .how-title>p:last-child{
-                                                                                                                                                                                                                                  max-width:none}
-                                                                                                                                                                                                                                  .closing{
-                                                                                                                                                                                                                                    padding:32px 25px;
-                                                                                                                                                                                                                                    gap:25px;
-                                                                                                                                                                                                                                    align-items:flex-start}
-                                                                                                                                                                                                                                    .closing-shape{
-                                                                                                                                                                                                                                      width:65px;
-                                                                                                                                                                                                                                      height:65px;
-                                                                                                                                                                                                                                      font-size:54px;
-                                                                                                                                                                                                                                      line-height:62px;
-                                                                                                                                                                                                                                      margin-top:8px}
-                                                                                                                                                                                                                                      .closing h2{
-                                                                                                                                                                                                                                        font-size:27px;
-                                                                                                                                                                                                                                        letter-spacing:-1px}
-                                                                                                                                                                                                                                        .closing .button{
-                                                                                                                                                                                                                                          padding:14px 17px;
-                                                                                                                                                                                                                                          font-size:13px}
-                                                                                                                                                                                                                                          footer{
-                                                                                                                                                                                                                                            flex-wrap:wrap}
-                                                                                                                                                                                                                                            footer p{
-                                                                                                                                                                                                                                              order:3;
-                                                                                                                                                                                                                                              width:100%;
-                                                                                                                                                                                                                                              margin:0}
-                                                                                                                                                                                                                                              footer>a:last-child{
-                                                                                                                                                                                                                                                margin-left:auto}
-                                                                                                                                                                                                                                              }
-                                                                                                                                                                                                                                              @media(max-width:400px){
-                                                                                                                                                                                                                                                .hero-art{
-                                                                                                                                                                                                                                                  height:290px}
-                                                                                                                                                                                                                                                  .hero h1{
-                                                                                                                                                                                                                                                    font-size:40px;
-                                                                                                                                                                                                                                                    letter-spacing:-2px}
-                                                                                                                                                                                                                                                    .desktop{
-                                                                                                                                                                                                                                                      display:none}
-                                                                                                                                                                                                                                                      .closing{
-                                                                                                                                                                                                                                                        display:block}
-                                                                                                                                                                                                                                                        .closing-shape{
-                                                                                                                                                                                                                                                          margin-bottom:25px}
-                                                                                                                                                                                                                                                          .caption{
-                                                                                                                                                                                                                                                            font-size:10px}
-                                                                                                                                                                                                                                                            .nav .button{
-                                                                                                                                                                                                                                                              font-size:11px;
-                                                                                                                                                                                                                                                              padding:10px 13px;
-                                                                                                                                                                                                                                                              gap:12px}
-                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                            @media(prefers-reduced-motion:reduce){
-                                                                                                                                                                                                                                                              html{
-                                                                                                                                                                                                                                                                scroll-behavior:auto}
-                                                                                                                                                                                                                                                                *,*:before,*:after{
-                                                                                                                                                                                                                                                                  animation:none!important;
-                                                                                                                                                                                                                                                                  transition:none!important}
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                /* Interactive preview and motion controls. */
-                                                                                                                                                                                                                                                                [hidden]{
-                                                                                                                                                                                                                                                                  display: none !important;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .skip-link{
-                                                                                                                                                                                                                                                                  position: fixed;
-                                                                                                                                                                                                                                                                  top: 12px;
-                                                                                                                                                                                                                                                                  left: 12px;
-                                                                                                                                                                                                                                                                  z-index: 10;
-                                                                                                                                                                                                                                                                  padding: 12px 18px;
-                                                                                                                                                                                                                                                                  background: white;
-                                                                                                                                                                                                                                                                  border: 2px solid var(--blue);
-                                                                                                                                                                                                                                                                  border-radius: 8px;
-                                                                                                                                                                                                                                                                  transform: translateY(-180%);
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .skip-link:focus{
-                                                                                                                                                                                                                                                                  transform: translateY(0);
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .motion-control{
-                                                                                                                                                                                                                                                                  display: inline-flex;
-                                                                                                                                                                                                                                                                  align-items: center;
-                                                                                                                                                                                                                                                                  gap: 7px;
-                                                                                                                                                                                                                                                                  border: 0;
-                                                                                                                                                                                                                                                                  background: none;
-                                                                                                                                                                                                                                                                  padding: 12px 0;
-                                                                                                                                                                                                                                                                  color: var(--gray);
-                                                                                                                                                                                                                                                                  font-size: 11px;
-                                                                                                                                                                                                                                                                  min-width: 99px;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .motion-control span{
-                                                                                                                                                                                                                                                                  font-size: 16px;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .motion-paused *, .motion-paused *::before, .motion-paused *::after{
-                                                                                                                                                                                                                                                                  animation-play-state: paused !important;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .demo-actions{
-                                                                                                                                                                                                                                                                  display: flex;
-                                                                                                                                                                                                                                                                  padding: 0 23px;
-                                                                                                                                                                                                                                                                  min-height: 43px;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .continue-button, .restart-button{
-                                                                                                                                                                                                                                                                  border: 0;
-                                                                                                                                                                                                                                                                  background: #eaf1ff;
-                                                                                                                                                                                                                                                                  color: #164caf;
-                                                                                                                                                                                                                                                                  padding: 13px 18px;
-                                                                                                                                                                                                                                                                  border-radius: 8px;
-                                                                                                                                                                                                                                                                  font-size: 12px;
-                                                                                                                                                                                                                                                                  width: 100%;
-                                                                                                                                                                                                                                                                  min-height: 43px;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .continue-button span{
-                                                                                                                                                                                                                                                                  margin-left: 12px;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .continue-button:hover, .restart-button:hover{
-                                                                                                                                                                                                                                                                  background: #dbe8ff;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .continue-button:disabled{
-                                                                                                                                                                                                                                                                  opacity: .55;
-                                                                                                                                                                                                                                                                  cursor: wait;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .chat-disclaimer{
-                                                                                                                                                                                                                                                                  text-align: center;
-                                                                                                                                                                                                                                                                  font-size: 10px;
-                                                                                                                                                                                                                                                                  line-height: 1.6;
-                                                                                                                                                                                                                                                                  color: #747980;
-                                                                                                                                                                                                                                                                  margin: 12px 16px 18px;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .is-typing .agent{
-                                                                                                                                                                                                                                                                  width: 68px;
-                                                                                                                                                                                                                                                                  letter-spacing: 3px;
-                                                                                                                                                                                                                                                                  color: #747980;
-                                                                                                                                                                                                                                                                  animation: dot 1.4s infinite;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                .messages{
-                                                                                                                                                                                                                                                                  min-height: 380px;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                @media (max-width: 760px){
-                                                                                                                                                                                                                                                                  .nav-right{
-                                                                                                                                                                                                                                                                    gap: 16px;
-                                                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                                                                  .motion-control{
-                                                                                                                                                                                                                                                                    min-width: 0;
-                                                                                                                                                                                                                                                                    font-size: 10px;
-                                                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                                                                  .messages{
-                                                                                                                                                                                                                                                                    min-height: 375px;
-                                                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                @media (max-width: 400px){
-                                                                                                                                                                                                                                                                  .nav-right{
-                                                                                                                                                                                                                                                                    gap: 12px;
-                                                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                                                                  .motion-control{
-                                                                                                                                                                                                                                                                    font-size: 0;
-                                                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                                                                  .motion-control span{
-                                                                                                                                                                                                                                                                    width: 20px;
-                                                                                                                                                                                                                                                                    font-size: 18px;
-                                                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                @media (prefers-reduced-motion: reduce){
-                                                                                                                                                                                                                                                                  .motion-control{
-                                                                                                                                                                                                                                                                    display: none;
-                                                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                                                                  .hero-art img, .is-typing .agent{
-                                                                                                                                                                                                                                                                    animation: none;
-                                                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                                                                }
-
+  --line:#e7e9ed
+}
+*{
+  box-sizing:border-box
+}
+html{
+  scroll-behavior:smooth;
+  scroll-padding-top:40px
+}
+body{
+  margin:0;
+  background:#fff;
+  color:var(--ink);
+  font-family:'Helvetica Neue',Arial,sans-serif;
+  -webkit-font-smoothing:antialiased
+}
+a{
+  color:inherit;
+  text-decoration:none
+}
+button{
+  font:inherit;
+  cursor:pointer
+}
+a:focus-visible,button:focus-visible{
+  outline:3px solid #1959e8;
+  outline-offset:5px
+}
+.nav{
+  height:92px;
+  padding:0 5%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid #f0f1f3
+}
+.wordmark{
+  font-size:27px;
+  letter-spacing:-1.2px;
+  font-weight:600;
+  display:flex;
+  gap:10px;
+  align-items:center
+}
+.logo{
+  display:flex;
+  gap:3px;
+  align-items:center;
+  height:27px;
+  transform:rotate(-12deg)
+}
+.logo i{
+  display:block;
+  background:var(--blue);
+  width:7px;
+  height:23px;
+  border-radius:5px
+}
+.logo i:nth-child(2){
+  height:30px;
+  background:#ea493d
+}
+.logo i:nth-child(3){
+  height:18px;
+  background:#f8bd36
+}
+.nav-right{
+  display:flex;
+  align-items:center;
+  gap:35px;
+  font-size:14px
+}
+.button{
+  background:var(--blue);
+  color:#fff;
+  display:inline-flex;
+  align-items:center;
+  gap:28px;
+  padding:18px 25px;
+  border-radius:8px;
+  font-size:15px;
+  font-weight:500;
+  transition:background .2s,transform .2s
+}
+.button:hover{
+  transform:translateY(-2px)
+}
+.button span{
+  font-size:20px
+}
+.button.small{
+  padding:12px 18px;
+  font-size:13px;
+  gap:22px
+}
+.hero{
+  text-align:center;
+  padding:64px 20px 0;
+  overflow:hidden
+}
+.eyebrow{
+  font-size:11px;
+  letter-spacing:1.8px;
+  font-weight:600;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:9px
+}
+h1{
+  font-size:clamp(56px,6.9vw,100px);
+  font-weight:500;
+  letter-spacing:-6px;
+  line-height:1.08;
+  margin:26px 0
+}
+.blue{
+  color:var(--blue)
+}
+.lead{
+  font-size:18px;
+  line-height:1.65;
+  color:var(--gray);
+  margin:24px 0
+}
+.caption{
+  font-size:11px;
+  color:#74777e;
+  margin-top:15px
+}
+.hero-art{
+  max-width:960px;
+  height:490px;
+  position:relative;
+  margin:5px auto 0
+}
+.hero-art img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block
+}
+.floating{
+  position:absolute;
+  font-size:18px;
+  box-shadow:0 8px 25px #1d3e7810;
+  animation:bob 7s ease-in-out infinite
+}
+.chat-blue{
+  background:var(--blue);
+  color:white;
+  top:16%;
+  left:8%;
+  padding:22px 29px;
+  border-radius:28px 28px 4px 28px;
+  transform:rotate(-6deg);
+  --rotation:-6deg
+}
+.chat-white{
+  background:#f1f4f9;
+  right:2%;
+  bottom:27%;
+  padding:20px 26px;
+  border-radius:28px 28px 28px 4px;
+  --rotation:5deg;
+  animation-delay:-3s;
+  display:flex;
+  align-items:center;
+  gap:12px
+}
+.mini-logo{
+  font-size:24px;
+  color:var(--blue);
+  font-weight:700;
+  letter-spacing:-2px
+}
+.tiny-bubble{
+  display:flex;
+  gap:5px;
+  background:#e8f0fe;
+  padding:17px 20px;
+  right:12%;
+  top:19%;
+  border-radius:24px 24px 24px 3px;
+  animation-delay:-1s
+}
+.tiny-bubble i{
+  width:7px;
+  height:7px;
+  background:#6388cf;
+  border-radius:50%;
+  animation:dot 1.4s infinite
+}
+.tiny-bubble i:nth-child(2){
+  animation-delay:.2s
+}
+.tiny-bubble i:nth-child(3){
+  animation-delay:.4s
+}
+@keyframes bob{
+  0%,100%{
+    transform:translateY(0) rotate(var(--rotation,0deg))
+  }
+  50%{
+    transform:translateY(-13px) rotate(var(--rotation,0deg))
+  }
+}
+@keyframes dot{
+  0%,70%,100%{
+    opacity:.4;
+    transform:translateY(0)
+  }
+  35%{
+    opacity:1;
+    transform:translateY(-4px)
+  }
+}
+.try-section{
+  background:#f7f9fc;
+  padding:80px max(5%,calc((100vw - 1130px)/2)) 90px
+}
+.try-heading{
+  text-align:center
+}
+h2{
+  font-size:clamp(34px,3.8vw,52px);
+  line-height:1.16;
+  font-weight:500;
+  letter-spacing:-2px;
+  margin:17px 0
+}
+.try-heading>p:last-child{
+  color:var(--gray);
+  font-size:16px
+}
+.playground{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:65px;
+  align-items:center;
+  margin-top:50px
+}
+.situations{
+  display:flex;
+  flex-direction:column;
+  gap:12px
+}
+.scenario{
+  display:flex;
+  align-items:center;
+  text-align:left;
+  gap:17px;
+  padding:22px 19px;
+  border:1px solid transparent;
+  background:transparent;
+  border-radius:13px;
+  color:var(--ink);
+  transition:background .2s,border .2s,transform .2s
+}
+.scenario:hover{
+  background:#edf1f8;
+  transform:translateX(3px)
+}
+.scenario[aria-pressed=true]{
+  background:white;
+  border-color:#d5e1f8;
+  box-shadow:0 5px 18px #253d6210
+}
+.scenario b{
+  font-weight:500;
+  font-size:18px;
+  display:block
+}
+.scenario small{
+  display:block;
+  margin-top:7px;
+  font-size:12px;
+  color:var(--gray)
+}
+.scenario-icon{
+  display:grid;
+  place-items:center;
+  width:44px;
+  height:48px;
+  border-radius:13px;
+  font-size:27px;
+  flex-shrink:0
+}
+.blue-tint{
+  background:#e5eeff;
+  color:#2864df
+}
+.yellow-tint{
+  background:#fff0c5;
+  color:#9b6e00
+}
+.green-tint{
+  background:#dcf1e6;
+  color:#208054
+}
+.arrow{
+  margin-left:auto;
+  font-size:20px;
+  color:var(--blue)
+}
+.preview-note{
+  font-size:11px;
+  line-height:1.7;
+  color:#73777e;
+  padding-left:20px
+}
+.chat-window{
+  background:white;
+  border:1px solid #e0e5ed;
+  border-radius:22px;
+  box-shadow:0 15px 45px #23416c09;
+  overflow:hidden
+}
+.chat-header{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:20px 24px;
+  border-bottom:1px solid #f0f1f4
+}
+.avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:#e9f0ff;
+  color:var(--blue);
+  display:grid;
+  place-items:center;
+  font-size:23px;
+  letter-spacing:-2px;
+  font-weight:700
+}
+.chat-header strong{
+  font-size:13px;
+  font-weight:500
+}
+.chat-header small{
+  display:block;
+  font-size:10px;
+  color:var(--gray);
+  margin-top:4px
+}
+.demo-tag{
+  margin-left:auto;
+  color:#7c8490;
+  letter-spacing:1.5px;
+  font-size:9px
+}
+.messages{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  padding:27px 23px;
+  min-height:330px
+}
+.message{
+  padding:16px 19px;
+  font-size:14px;
+  line-height:1.65;
+  max-width:90%;
+  animation:arrive .4s ease both
+}
+.message.user{
+  align-self:flex-end;
+  background:var(--blue);
+  color:white;
+  border-radius:20px 20px 4px 20px
+}
+.message.agent{
+  background:#f1f3f5;
+  border-radius:20px 20px 20px 4px;
+  animation-delay:.1s
+}
+.next-step{
+  display:flex;
+  gap:10px;
+  margin:4px 5px 0
+}
+.next-step small{
+  font-size:9px;
+  letter-spacing:1px;
+  color:#347659;
+  font-weight:700
+}
+.next-step p{
+  font-size:12px;
+  line-height:1.6;
+  margin:5px 0 0;
+  color:var(--gray)
+}
+@keyframes arrive{
+  from{
+    opacity:0;
+    transform:translateY(8px)
+  }
+  to{
+    opacity:1;
+    transform:translateY(0)
+  }
+}
+.how{
+  max-width:1130px;
+  margin:auto;
+  padding:110px 0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:95px
+}
+.how .eyebrow{
+  justify-content:flex-start
+}
+.how-title h2 span{
+  color:#8b9098
+}
+.how-title>p:last-child{
+  font-size:16px;
+  color:var(--gray);
+  line-height:1.8;
+  max-width:350px
+}
+.how-rows article{
+  display:flex;
+  gap:24px;
+  padding:24px 0;
+  border-bottom:1px solid var(--line)
+}
+.how-rows article:first-child{
+  padding-top:0
+}
+.number{
+  font-size:12px;
+  color:var(--blue);
+  padding-top:5px
+}
+h3{
+  font-size:20px;
+  font-weight:500;
+  letter-spacing:-.4px;
+  margin:0 0 10px
+}
+.how-rows p{
+  font-size:14px;
+  line-height:1.8;
+  color:var(--gray);
+  margin:0
+}
+.closing{
+  max-width:1230px;
+  margin:0 auto 80px;
+  border-radius:24px;
+  background:#eaf1fe;
+  padding:65px;
+  display:flex;
+  align-items:center;
+  gap:65px
+}
+.closing-shape{
+  width:150px;
+  height:150px;
+  flex-shrink:0;
+  border-radius:43% 43% 43% 5%;
+  background:#fbc447;
+  color:#fff;
+  font-size:120px;
+  text-align:center;
+  line-height:145px;
+  transform:rotate(-9deg)
+}
+.closing h2{
+  font-size:37px;
+  margin-top:0;
+  letter-spacing:-1.5px
+}
+.closing .button{
+  margin-top:12px
+}
+footer{
+  padding:40px 5%;
+  border-top:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:30px
+}
+footer .wordmark{
+  font-size:21px;
+  gap:0
+}
+footer p{
+  font-size:11px;
+  line-height:1.8;
+  color:#747980
+}
+footer>a:last-child{
+  font-size:12px;
+  color:var(--blue)
+}
+@media(min-width:1450px){
+  .hero-art{
+    height:530px
+  }
+}
+@media(max-width:1200px){
+  .how{
+    padding:80px 6%;
+    gap:60px
+  }
+  .closing{
+    margin:0 5% 60px
+  }
+  .playground{
+    gap:35px
+  }
+}
+@media(max-width:760px){
+  .nav{
+    height:76px
+  }
+  .nav-right>a[href="#how"]{
+    display:none
+  }
+  .wordmark{
+    font-size:23px
+  }
+  .hero{
+    padding-top:43px
+  }
+  h1{
+    font-size:clamp(43px,8.9vw,68px);
+    letter-spacing:-3px
+  }
+  .lead{
+    font-size:16px
+  }
+  .hero-art{
+    height:350px;
+    margin-top:25px
+  }
+  .floating{
+    font-size:12px
+  }
+  .chat-blue{
+    padding:15px 19px;
+    left:1%;
+    top:15%
+  }
+  .chat-white{
+    padding:13px 16px;
+    right:0;
+    bottom:24%
+  }
+  .mini-logo{
+    font-size:20px
+  }
+  .tiny-bubble{
+    padding:12px 15px;
+    right:5%
+  }
+  .tiny-bubble i{
+    width:5px;
+    height:5px
+  }
+  .try-section{
+    padding:50px 6%
+  }
+  .playground{
+    grid-template-columns:1fr;
+    gap:20px;
+    margin-top:30px
+  }
+  .scenario{
+    padding:15px 12px
+  }
+  .scenario b{
+    font-size:16px
+  }
+  .preview-note{
+    margin-bottom:0
+  }
+  .messages{
+    min-height:300px
+  }
+  .how{
+    grid-template-columns:1fr;
+    gap:30px;
+    padding:65px 7%
+  }
+  .how-title>p:last-child{
+    max-width:none
+  }
+  .closing{
+    padding:32px 25px;
+    gap:25px;
+    align-items:flex-start
+  }
+  .closing-shape{
+    width:65px;
+    height:65px;
+    font-size:54px;
+    line-height:62px;
+    margin-top:8px
+  }
+  .closing h2{
+    font-size:27px;
+    letter-spacing:-1px
+  }
+  .closing .button{
+    padding:14px 17px;
+    font-size:13px
+  }
+  footer{
+    flex-wrap:wrap
+  }
+  footer p{
+    order:3;
+    width:100%;
+    margin:0
+  }
+  footer>a:last-child{
+    margin-left:auto
+  }
+}
+@media(max-width:400px){
+  .hero-art{
+    height:290px
+  }
+  .hero h1{
+    font-size:40px;
+    letter-spacing:-2px
+  }
+  .desktop{
+    display:none
+  }
+  .closing{
+    display:block
+  }
+  .closing-shape{
+    margin-bottom:25px
+  }
+  .caption{
+    font-size:10px
+  }
+  .nav .button{
+    font-size:11px;
+    padding:10px 13px;
+    gap:12px
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html{
+    scroll-behavior:auto
+  }
+  *,*:before,*:after{
+    animation:none!important;
+    transition:none!important
+  }
+}
+/* Interactive preview and motion controls. */
+[hidden]{
+  display: none !important;
+}
+.skip-link{
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  padding: 12px 18px;
+  background: white;
+  border: 2px solid var(--blue);
+  border-radius: 8px;
+  transform: translateY(-180%);
+}
+.skip-link:focus{
+  transform: translateY(0);
+}
+.motion-control{
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: none;
+  padding: 12px 0;
+  color: var(--gray);
+  font-size: 11px;
+  min-width: 99px;
+}
+.motion-control span{
+  font-size: 16px;
+}
+.motion-paused *, .motion-paused *::before, .motion-paused *::after{
+  animation-play-state: paused !important;
+}
+.demo-actions{
+  display: flex;
+  padding: 0 23px;
+  min-height: 43px;
+}
+.continue-button, .restart-button{
+  border: 0;
+  background: #eaf1ff;
+  color: #164caf;
+  padding: 13px 18px;
+  border-radius: 8px;
+  font-size: 12px;
+  width: 100%;
+  min-height: 43px;
+}
+.continue-button span{
+  margin-left: 12px;
+}
+.continue-button:hover, .restart-button:hover{
+  background: #dbe8ff;
+}
+.continue-button:disabled{
+  opacity: .55;
+  cursor: wait;
+}
+.chat-disclaimer{
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #747980;
+  margin: 12px 16px 18px;
+}
+.is-typing .agent{
+  width: 68px;
+  letter-spacing: 3px;
+  color: #747980;
+  animation: dot 1.4s infinite;
+}
+.messages{
+  min-height: 380px;
+}
+@media (max-width: 760px){
+  .nav-right{
+    gap: 16px;
+  }
+  .motion-control{
+    min-width: 0;
+    font-size: 10px;
+  }
+  .messages{
+    min-height: 375px;
+  }
+}
+@media (max-width: 400px){
+  .nav-right{
+    gap: 12px;
+  }
+  .motion-control{
+    font-size: 0;
+  }
+  .motion-control span{
+    width: 20px;
+    font-size: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce){
+  .motion-control{
+    display: none;
+  }
+  .hero-art img, .is-typing .agent{
+    animation: none;
+  }
+}
 /* Shared, locally hosted Material Symbols. */
-.icon-library { position: absolute; width: 0; height: 0; overflow: hidden; }
-.icon { width: 24px; height: 24px; display: inline-block; vertical-align: middle; fill: currentColor; flex-shrink: 0; }
-.button .icon { width: 21px; height: 21px; }
-.scenario-icon .icon { width: 25px; height: 25px; }
-.arrow { width: 19px; height: 19px; }
-footer > a:last-child { display: inline-flex; gap: 8px; align-items: center; }
-footer .icon { width: 16px; height: 16px; }
-
+.icon-library {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+.icon {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  vertical-align: middle;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+.button .icon {
+  width: 21px;
+  height: 21px;
+}
+.scenario-icon .icon {
+  width: 25px;
+  height: 25px;
+}
+.arrow {
+  width: 19px;
+  height: 19px;
+}
+footer > a:last-child {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+footer .icon {
+  width: 16px;
+  height: 16px;
+}
 /* The headline has its own small, responsive motion stage. */
-.hero { padding-top: 72px; }
-.headline-wrap { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; }
-.hero h1 { margin: 0 0 28px; font-size: clamp(64px, 7.5vw, 108px); line-height: 1.12; letter-spacing: -.065em; }
-.circled-word { position: relative; display: inline-block; color: var(--blue); white-space: nowrap; padding: 0 .08em; }
-.headline-ring { position: absolute; width: 123%; height: 134%; left: -11%; top: -13%; overflow: visible; pointer-events: none; }
-.headline-ring path { fill: none; stroke: #f6bb30; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; animation: circle-draw 9s ease-in-out infinite; }
-.headline-bubble { position: absolute; display: block; border: 2px solid currentColor; border-radius: 50%; pointer-events: none; animation: headline-float 7s ease-in-out infinite; transition: scale .5s ease, background-color .5s ease; }
-.bubble-one { color: #4285ed; width: 32px; height: 32px; left: -88px; top: 43px; }
-.bubble-two { color: #f6bb30; width: 51px; height: 51px; right: -95px; bottom: 21px; animation-delay: -2.5s; }
-.bubble-three { color: #ea584b; width: 14px; height: 14px; left: -45px; bottom: 3px; animation-delay: -4s; }
-.headline-wrap:hover .headline-bubble { scale: 1.3; }
-.headline-wrap:hover .bubble-one { background: #eaf1ff; }
-.headline-wrap:hover .bubble-two { background: #fff6da; }
-.headline-wrap:hover .bubble-three { background: #fce9e7; }
-.headline-wrap.is-playful .headline-ring path { animation: circle-retrace 1.1s ease-out both; }
-.mobile-break { display: none; }
-.lead { margin: 28px 0; }
+.hero {
+  padding-top: 72px;
+}
+.headline-wrap {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+.hero h1 {
+  margin: 0 0 28px;
+  font-size: clamp(64px, 7.5vw, 108px);
+  line-height: 1.12;
+  letter-spacing: -.065em;
+}
+.circled-word {
+  position: relative;
+  display: inline-block;
+  color: var(--blue);
+  white-space: nowrap;
+  padding: 0 .08em;
+}
+.headline-ring {
+  position: absolute;
+  width: 123%;
+  height: 134%;
+  left: -11%;
+  top: -13%;
+  overflow: visible;
+  pointer-events: none;
+}
+.headline-ring path {
+  fill: none;
+  stroke: #f6bb30;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: circle-draw 9s ease-in-out infinite;
+}
+.headline-bubble {
+  position: absolute;
+  display: block;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: headline-float 7s ease-in-out infinite;
+  transition: scale .5s ease, background-color .5s ease;
+}
+.bubble-one {
+  color: #4285ed;
+  width: 32px;
+  height: 32px;
+  left: -88px;
+  top: 43px;
+}
+.bubble-two {
+  color: #f6bb30;
+  width: 51px;
+  height: 51px;
+  right: -95px;
+  bottom: 21px;
+  animation-delay: -2.5s;
+}
+.bubble-three {
+  color: #ea584b;
+  width: 14px;
+  height: 14px;
+  left: -45px;
+  bottom: 3px;
+  animation-delay: -4s;
+}
+.headline-wrap:hover .headline-bubble {
+  scale: 1.3;
+}
+.headline-wrap:hover .bubble-one {
+  background: #eaf1ff;
+}
+.headline-wrap:hover .bubble-two {
+  background: #fff6da;
+}
+.headline-wrap:hover .bubble-three {
+  background: #fce9e7;
+}
+.headline-wrap.is-playful .headline-ring path {
+  animation: circle-retrace 1.1s ease-out both;
+}
+.mobile-break {
+  display: none;
+}
+.lead {
+  margin: 28px 0;
+}
 @keyframes circle-draw {
-  0% { stroke-dashoffset: 1; opacity: 0; }
-  7% { opacity: 1; }
-  25%, 85% { stroke-dashoffset: 0; opacity: 1; }
-  96%, 100% { stroke-dashoffset: 0; opacity: 0; }
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  7% {
+    opacity: 1;
+  }
+  25%, 85% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  96%, 100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
 }
 @keyframes circle-retrace {
-  from { stroke-dashoffset: 1; opacity: 1; }
-  to { stroke-dashoffset: 0; opacity: 1; }
+  from {
+    stroke-dashoffset: 1;
+    opacity: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
 }
 @keyframes headline-float {
-  0%, 100% { transform: translate(0, 0); }
-  35% { transform: translate(8px, -12px); }
-  70% { transform: translate(-5px, -5px); }
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  35% {
+    transform: translate(8px, -12px);
+  }
+  70% {
+    transform: translate(-5px, -5px);
+  }
 }
-
 /* The image floats independently of its pointer-responsive outer wrapper. */
-.hero-art { perspective: 1200px; margin-top: 30px; }
-.art-tilt { width: 100%; height: 100%; transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform .6s cubic-bezier(.2,.8,.2,1); transform-origin: 50% 65%; }
-.art-tilt img { animation: art-drift 11s ease-in-out infinite; transform-origin: 50% 70%; mix-blend-mode: multiply; }
+.hero-art {
+  perspective: 1200px;
+  margin-top: 30px;
+}
+.art-tilt {
+  width: 100%;
+  height: 100%;
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform .6s cubic-bezier(.2,.8,.2,1);
+  transform-origin: 50% 65%;
+}
+.art-tilt img {
+  animation: art-drift 11s ease-in-out infinite;
+  transform-origin: 50% 70%;
+  mix-blend-mode: multiply;
+}
 @keyframes art-drift {
-  0%, 100% { transform: translateY(0) rotate(-.6deg) scale(.99); }
-  50% { transform: translateY(-14px) rotate(.7deg) scale(1.025); }
+  0%, 100% {
+    transform: translateY(0) rotate(-.6deg) scale(.99);
+  }
+  50% {
+    transform: translateY(-14px) rotate(.7deg) scale(1.025);
+  }
 }
-
 /* Slow color changes keep white button labels readable throughout. */
-.button { animation: button-colors 18s ease-in-out infinite; position: relative; isolation: isolate; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease; }
-.button::before { content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit; background: linear-gradient(110deg, transparent 20%, #ffffff23 48%, transparent 75%); transform: translateX(-110%); transition: transform .65s ease; }
-.button:hover::before, .button:focus-visible::before { transform: translateX(110%); }
-.button:hover { box-shadow: 0 7px 18px #1a53bc20; }
-.button-icon { transition: transform .25s ease; }
-.button:hover .button-icon, .continue-button:hover .button-icon { transform: translate(2px, -2px); }
-.button:active { transform: translateY(0) scale(.98); }
+.button {
+  animation: button-colors 18s ease-in-out infinite;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.button::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(110deg, transparent 20%, #ffffff23 48%, transparent 75%);
+  transform: translateX(-110%);
+  transition: transform .65s ease;
+}
+.button:hover::before, .button:focus-visible::before {
+  transform: translateX(110%);
+}
+.button:hover {
+  box-shadow: 0 7px 18px #1a53bc20;
+}
+.button-icon {
+  transition: transform .25s ease;
+}
+.button:hover .button-icon, .continue-button:hover .button-icon {
+  transform: translate(2px, -2px);
+}
+.button:active {
+  transform: translateY(0) scale(.98);
+}
 @keyframes button-colors {
-  0%, 100% { background-color: #1959e8; }
-  32% { background-color: #b23b30; }
-  65% { background-color: #18704e; }
-  84% { background-color: #4653b9; }
+  0%, 100% {
+    background-color: #1959e8;
+  }
+  32% {
+    background-color: #b23b30;
+  }
+  65% {
+    background-color: #18704e;
+  }
+  84% {
+    background-color: #4653b9;
+  }
 }
-.continue-button, .restart-button { display: flex; align-items: center; justify-content: center; gap: 11px; animation: soft-button-colors 18s ease-in-out infinite; }
-.continue-button .icon, .restart-button .icon { width: 18px; height: 18px; }
+.continue-button, .restart-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  animation: soft-button-colors 18s ease-in-out infinite;
+}
+.continue-button .icon, .restart-button .icon {
+  width: 18px;
+  height: 18px;
+}
 @keyframes soft-button-colors {
-  0%, 100% { background-color: #eaf1ff; color: #164caf; }
-  32% { background-color: #fcece9; color: #9c3129; }
-  65% { background-color: #e5f2ed; color: #1c6248; }
-  84% { background-color: #eeedfa; color: #50449b; }
+  0%, 100% {
+    background-color: #eaf1ff;
+    color: #164caf;
+  }
+  32% {
+    background-color: #fcece9;
+    color: #9c3129;
+  }
+  65% {
+    background-color: #e5f2ed;
+    color: #1c6248;
+  }
+  84% {
+    background-color: #eeedfa;
+    color: #50449b;
+  }
 }
-.next-step { border-left: 2px solid #dfe6f1; padding: 3px 0 3px 14px; margin: 4px 5px 0; }
-.next-step small { font-size: 12px; color: #41464e; font-weight: 500; letter-spacing: 0; }
-.next-step p { margin-top: 7px; }
-.closing-shape { display: grid; place-items: center; animation: closing-rock 8s ease-in-out infinite; }
-.closing-shape .icon { width: 100px; height: 100px; }
-@keyframes closing-rock { 0%, 100% { transform: rotate(-9deg); } 50% { transform: rotate(3deg) translateY(-5px); } }
-.motion-control { gap: 7px; min-height: 44px; }
-.motion-control .icon { width: 17px; height: 17px; }
-.motion-control .motion-label { font-size: 11px; width: auto; }
-.motion-paused .art-tilt { transform: none; transition: none; }
-.motion-paused .headline-ring path { opacity: 1; stroke-dashoffset: 0; }
-.motion-paused .button::before, .motion-paused .button-icon { transition: none; }
-.motion-paused .headline-bubble { transition: none; }
-
+.next-step {
+  border-left: 2px solid #dfe6f1;
+  padding: 3px 0 3px 14px;
+  margin: 4px 5px 0;
+}
+.next-step small {
+  font-size: 12px;
+  color: #41464e;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.next-step p {
+  margin-top: 7px;
+}
+.closing-shape {
+  display: grid;
+  place-items: center;
+  animation: closing-rock 8s ease-in-out infinite;
+}
+.closing-shape .icon {
+  width: 100px;
+  height: 100px;
+}
+@keyframes closing-rock {
+  0%, 100% {
+    transform: rotate(-9deg);
+  }
+  50% {
+    transform: rotate(3deg) translateY(-5px);
+  }
+}
+.motion-control {
+  gap: 7px;
+  min-height: 44px;
+}
+.motion-control .icon {
+  width: 17px;
+  height: 17px;
+}
+.motion-control .motion-label {
+  font-size: 11px;
+  width: auto;
+}
+.motion-paused .art-tilt {
+  transform: none;
+  transition: none;
+}
+.motion-paused .headline-ring path {
+  opacity: 1;
+  stroke-dashoffset: 0;
+}
+.motion-paused .button::before, .motion-paused .button-icon {
+  transition: none;
+}
+.motion-paused .headline-bubble {
+  transition: none;
+}
 @media (max-width: 760px) {
-  .hero { padding-top: 52px; }
-  .hero h1 { font-size: clamp(52px, 10.8vw, 77px); letter-spacing: -.055em; }
-  .headline-ring path { stroke-width: 4; }
-  .bubble-one { left: -37px; top: 13px; width: 19px; height: 19px; }
-  .bubble-two { right: -35px; width: 25px; height: 25px; bottom: 10px; }
-  .bubble-three { left: -18px; bottom: 5px; width: 9px; height: 9px; }
-  .mobile-break { display: block; }
-  .lead { font-size: 16px; line-height: 1.7; margin: 24px 0; }
-  .art-tilt { transform: none; }
-  .closing-shape .icon { width: 44px; height: 44px; }
+  .hero {
+    padding-top: 52px;
+  }
+  .hero h1 {
+    font-size: clamp(52px, 10.8vw, 77px);
+    letter-spacing: -.055em;
+  }
+  .headline-ring path {
+    stroke-width: 4;
+  }
+  .bubble-one {
+    left: -37px;
+    top: 13px;
+    width: 19px;
+    height: 19px;
+  }
+  .bubble-two {
+    right: -35px;
+    width: 25px;
+    height: 25px;
+    bottom: 10px;
+  }
+  .bubble-three {
+    left: -18px;
+    bottom: 5px;
+    width: 9px;
+    height: 9px;
+  }
+  .mobile-break {
+    display: block;
+  }
+  .lead {
+    font-size: 16px;
+    line-height: 1.7;
+    margin: 24px 0;
+  }
+  .art-tilt {
+    transform: none;
+  }
+  .closing-shape .icon {
+    width: 44px;
+    height: 44px;
+  }
 }
 @media (max-width: 400px) {
-  .motion-control .motion-label { display: none; }
-  .motion-control { width: 28px; justify-content: center; }
-  .hero h1 { font-size: 52px; }
+  .motion-control .motion-label {
+    display: none;
+  }
+  .motion-control {
+    width: 28px;
+    justify-content: center;
+  }
+  .hero h1 {
+    font-size: 52px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .headline-ring path { opacity: 1; stroke-dashoffset: 0; }
-  .art-tilt { transform: none; transition: none; }
-  .button::before { display: none; }
-  .headline-wrap:hover .headline-bubble { scale: 1; }
+  .headline-ring path {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  .art-tilt {
+    transform: none;
+    transition: none;
+  }
+  .button::before {
+    display: none;
+  }
+  .headline-wrap:hover .headline-bubble {
+    scale: 1;
+  }
+}
+/* Official evidence stays close to the illustrative conversation. */
+.source-note {
+  margin: 0 23px 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+.source-note a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #164caf;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.source-note a:hover {
+  text-decoration: underline;
+}
+.source-note .icon {
+  width: 15px;
+  height: 15px;
+}
+.source-note p {
+  color: var(--gray);
+  font-size: 10px;
+  line-height: 1.6;
+  margin: 6px 0 0;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+/* Guided conversations preserve earlier turns and show the work being done. */
+.demo-progress {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 16px 23px 0;
+  gap: 22px;
+  color: #8a8e95;
+  font-size: 11px;
+}
+.demo-progress li {
+  padding-bottom: 9px;
+  border-bottom: 2px solid transparent;
+}
+.demo-progress li[aria-current="step"] {
+  color: #164caf;
+  border-color: #1959e8;
+}
+.demo-progress li.completed {
+  color: #62666d;
+}
+.messages {
+  position: relative;
+  height: 430px;
+  min-height: 0;
+  padding: 22px;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #d7dfec transparent;
+}
+.messages:focus-visible {
+  outline: 2px solid #1959e8;
+  outline-offset: -4px;
+}
+.exchange {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 16px;
+}
+.exchange + .exchange {
+  border-top: 1px solid #edf0f5;
+  padding-top: 22px;
+  margin-top: 4px;
+}
+.message {
+  flex-shrink: 0;
+}
+.typing-reply {
+  width: 68px;
+  letter-spacing: 3px;
+  color: #747980;
+  animation: dot 1.4s infinite;
+}
+.chat-window > .next-step {
+  margin: 20px 23px;
+}
+.attachment-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  align-self: flex-end;
+  width: min(100%, 310px);
+  background: #f7f9fd;
+  border: 1px solid #dbe5f6;
+  padding: 12px;
+  border-radius: 13px;
+  transition: border-color .2s, background .2s;
+}
+.attachment-card:hover {
+  border-color: #1959e8;
+  background: #eef3fd;
+}
+.attachment-card img {
+  object-fit: cover;
+  object-position: top;
+  border: 1px solid #dbe1eb;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.attachment-card > span {
+  min-width: 0;
+}
+.attachment-card strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #23436b;
+  overflow-wrap: anywhere;
+}
+.attachment-card small {
+  display: block;
+  font-size: 10px;
+  color: #73777e;
+  margin-top: 6px;
+}
+.attachment-card .icon {
+  width: 17px;
+  height: 17px;
+  color: #1959e8;
+  margin-left: auto;
+}
+.draft-card {
+  margin: 0 0 4px;
+  border: 1px solid #dce6f8;
+  border-radius: 14px;
+  padding: 18px;
+  background: #f6f9ff;
+}
+.draft-card h4 {
+  margin: 0 0 12px;
+  color: #234c97;
+  font-size: 12px;
+  font-weight: 600;
+}
+.draft-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre-line;
+  color: #3b4555;
+  user-select: text;
+}
+.copy-draft {
+  margin-top: 15px;
+  border: 1px solid #ccd9f0;
+  border-radius: 6px;
+  background: white;
+  color: #164caf;
+  padding: 9px 13px;
+  font-size: 11px;
+  min-height: 36px;
+}
+.copy-draft:hover {
+  background: #eaf1ff;
+}
+.continue-button .action-label {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+@media (max-width: 760px) {
+  .messages {
+    height: 410px;
+    min-height: 0;
+    padding: 20px;
+  }
+  .demo-progress {
+    gap: 20px;
+    padding-inline: 20px;
+  }
 }
