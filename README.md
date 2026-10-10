@@ -4,13 +4,26 @@ MoreTime is a hackathon project for people dealing with overdue bills, utility s
 
 ## What works so far
 
-- Upload a bill or describe the problem, then add a phone number and ZIP code or state. No account needed.
+- Upload a PDF or bill image up to 10 MB, or describe the problem. Add a U.S. phone number and ZIP code or state. No account needed.
 - Save those details and connect the conversation through Photon’s iMessage integration by replying with a verification code.
-- After verification, Gemini reads the saved bill and answers follow-up questions in the same chat, using persisted bill facts and recent conversation.
+- After verification, Gemini reads the saved bill and answers follow-up questions in the same chat, using saved bill facts and the last ten conversation turns. This requires a configured Gemini API key.
 - Send an updated bill directly in iMessage, or reply STOP to disconnect and remove the saved case from the active database.
 - Try the landing page’s sample conversations about shutoffs, payment plans, and disputed bills.
 
 The sample conversations are scripted New Jersey examples. The live Gemini assistant can explain bills and draft requests; policy retrieval, contacting billers, and automatic follow-ups are still being built.
+
+## Tech stack
+
+| Part | Technology |
+| --- | --- |
+| Frontend | HTML, CSS, and JavaScript |
+| Backend | TypeScript on Node.js 24+, using Node’s HTTP server |
+| Messaging | Photon Spectrum (`spectrum-ts`) for iMessage |
+| Bill reading and chat | Google Gemini through `@google/genai` |
+| Database | SQLite through Node’s built-in `node:sqlite` |
+| Model output validation | Zod |
+| Account authentication | JWT/JWKS verification with `jose` for account endpoints; guest intake needs no sign-in |
+| Development and tests | npm, `tsx`, TypeScript, and Node’s test runner |
 
 ## Run locally
 
@@ -22,7 +35,9 @@ Install the backend dependencies:
 npm run setup
 ```
 
-Set up `more-time/.env` using [the example configuration](more-time/.env.example). Add your Photon `PROJECT_ID` and `PROJECT_SECRET`, keeping any existing settings. Add `GEMINI_API_KEY` from [Google AI Studio](https://aistudio.google.com/apikey) to enable the assistant. Bill reading uses `GEMINI_MODEL` (default `gemini-3.8-flash`); routine chat uses `GEMINI_CHAT_MODEL` (default `gemini-3.5-flash-lite`). Your Photon project needs iMessage access and an eligible demo recipient. Guest intake does not need a sign-in provider.
+Set up `more-time/.env` using [the example configuration](more-time/.env.example). Add your Photon `PROJECT_ID` and `PROJECT_SECRET`, keeping any existing settings. Your Photon project needs iMessage access and an eligible demo recipient. Guest intake does not need a sign-in provider.
+
+Add `GEMINI_API_KEY` from [Google AI Studio](https://aistudio.google.com/apikey) to enable the assistant. Bill reading uses `GEMINI_MODEL` (default `gemini-3.8-flash`); routine chat uses `GEMINI_CHAT_MODEL` (default `gemini-3.5-flash-lite`). Without a Gemini key, phone verification still works, but bill analysis and chat are disabled.
 
 Start the backend:
 
@@ -42,9 +57,9 @@ To look at the page and sample conversations without connecting Photon, just run
 
 ## Development
 
-The frontend is plain HTML, CSS, and JavaScript in `landing/dist`. The backend is TypeScript in `more-time/src`, using Photon Spectrum for messaging and SQLite for storage.
+Frontend files are in `landing/dist`, backend code is in `more-time/src`, and tests are in `more-time/test`. Python serves the static page locally and generates the sample bill assets.
 
-SQLite creates `more-time/data/moretime.sqlite` when the backend starts. There’s no separate database service to set up. Connected intake details stay saved; deployment needs persistent storage for that file.
+SQLite creates `more-time/data/moretime.sqlite` when the backend starts. It stores intake details, uploaded bills, extracted facts, and conversation history. There’s no separate database service to set up; deployment needs persistent storage for that file.
 
 Run the backend checks:
 
@@ -52,6 +67,8 @@ Run the backend checks:
 npm run typecheck
 npm test
 ```
+
+Tests use simulated Photon and Gemini responses and do not require API credentials.
 
 Use `npm run dev` to restart the backend automatically as you edit it.
 
