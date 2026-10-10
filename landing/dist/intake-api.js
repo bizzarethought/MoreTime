@@ -31,14 +31,14 @@
     const timeout = setTimeout(abort, 30_000);
     try {
       const response = await fetch(url, {
-        ...options, signal: controller.signal, cache: 'no-store', credentials: 'omit', redirect: 'error',
+        ...options, signal: controller.signal, cache: 'no-store', credentials: options.credentials || 'omit', redirect: 'error',
       });
       if (!response.ok) {
         const messages = {
           400: 'Check your bill details, phone number, and location, then try again.',
           401: 'This connection request is no longer available. Start a new request.',
           403: 'This page is not enabled for connections yet. Please try again later.',
-          404: 'The connection service is not ready yet. Your details have not been accepted.',
+          404: path === '/api/connection/manage' ? 'This number is not connected. Use Start with a conversation first.' : 'The connection service is not ready yet. Your details have not been accepted.',
           409: 'This number is already connected. Continue in your existing MoreTime conversation.',
           413: 'Choose a bill that is 10 MB or smaller.',
           415: 'Choose a PDF or a supported image of your bill.',
@@ -77,8 +77,16 @@
       }
       return result;
     },
+    async manage(phone, signal) {
+      const result=await request('/api/connection/manage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:phone,consent:true})},signal);
+      if(!result||typeof result.accessToken!=='string'||!/^MANAGE [A-F0-9]{24}$/.test(result.messageText)||!Number.isFinite(Date.parse(result.expiresAt)))throw new IntakeError('Could not confirm the management request. Check Messages.');
+      return {...result,management:true};
+    },
+    async engagement(connection, path, method = 'GET', body, signal) {
+      return request(path, { method, credentials: path === '/api/email/connect' ? 'include' : 'omit', headers: { Authorization: `Bearer ${connection.accessToken}`, ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) }, signal);
+    },
     async status(connection, signal) {
-      const result = await request('/api/intake/status', {
+      const result = await request(connection.management ? '/api/connection/manage/status' : '/api/intake/status', {
         method: 'GET', headers: { Authorization: `Bearer ${connection.accessToken}` },
       }, signal);
       if (!result || result.intakeId !== connection.intakeId || !['pending', 'connected', 'expired'].includes(result.status)) {

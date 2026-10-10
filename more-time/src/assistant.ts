@@ -3,6 +3,8 @@ import { ConversationStore } from "./conversation-store.ts";
 import { IntakeStore } from "./intake-store.ts";
 import { LinkStore } from "./store.ts";
 import type { IncomingMessage } from "./store.ts";
+import type { FollowUpStore } from "./follow-ups.ts";
+import type { EmailStore } from "./email.ts";
 import { assistantErrorCode } from "./assistant-error.ts";
 import { caseForNewDocument, emptyCase } from "./case.ts";
 
@@ -11,6 +13,8 @@ export function createMessageHandler(options: {
   intakes: IntakeStore;
   conversations: ConversationStore;
   engine?: BillEngine;
+  followUps?: FollowUpStore;
+  emails?: EmailStore;
 }) {
   // Serialize each account, including duplicate deliveries during an LLM request.
   const pending = new Map<string, Promise<unknown>>();
@@ -20,6 +24,8 @@ export function createMessageHandler(options: {
     let connection = options.store.connectionForSender(message.sender);
     if (/^(STOP|UNSUBSCRIBE)$/i.test(message.text?.trim() ?? "")) {
       if (connection) {
+        options.followUps?.remove(connection.user_id);
+        options.emails?.remove(connection.user_id);
         options.conversations.remove(connection.user_id);
         options.intakes.removeForUser(connection.user_id);
         options.store.removeRepliesForUser(connection.user_id);
@@ -28,6 +34,12 @@ export function createMessageHandler(options: {
       options.store.cancelChallengesForSender(message.sender);
       options.intakes.removeUnverifiedForSender(message.sender);
       return options.store.cacheReply(message.id, "You’re disconnected from MoreTime. Your saved bill and assistant conversation have been removed from the active database, and any pending connection was cancelled. Start a new request on the website if you want to reconnect.");
+    }
+    if(/^MANAGE(?:\s|$)/i.test(message.text?.trim()??"")) {
+      if(cached)return cached;
+      const code=/^MANAGE\s+([A-F0-9]{24})$/i.exec(message.text!.trim())?.[1];
+      const confirmed=code&&options.store.confirmManagement(message.sender,code);
+      return options.store.cacheReply(message.id,confirmed?"Website management is verified. Return to MoreTime to connect Gmail or manage check-ins. Your existing conversation and saved bill are still available.":"That management code is invalid, expired, or belongs to another number. Request a new code using Manage connection on the website.",connection?.user_id);
     }
     let connectionReply: string | undefined;
     const connecting = /^CONNECT(?:\s|$)/i.test(message.text?.trim() ?? "");
@@ -39,6 +51,22 @@ export function createMessageHandler(options: {
     }
     if (!connection) return options.store.prepareReply(message);
     const userId = connection.user_id;
+    const command=message.text?.trim().toUpperCase()??"";
+    if(command==="FOLLOWUPS OFF"||command==="RESOLVED") {
+      options.followUps?.pause(userId);
+      return options.store.cacheReply(message.id,"Your proactive check-ins and email notice alerts are paused. You can still message me whenever you need help.",userId);
+    }
+    if(command==="EMAIL OFF") {
+      options.emails?.remove(userId);
+      return options.store.cacheReply(message.id,"Gmail is disconnected from MoreTime and the saved email access token is removed. Your scheduled bill check-ins can continue. You can also revoke MoreTime access in your Google account settings.",userId);
+    }
+    const snooze=/^SNOOZE (\d{1,2})$/.exec(command);
+    if(snooze) {
+      const days=Number(snooze[1]);
+      const done=days>=1&&days<=30&&options.followUps?.snooze(userId,days);
+      return options.store.cacheReply(message.id,done?`I’ll wait ${days} days before the next bill check-in. Email notice alerts are also paused until then. Reply FOLLOWUPS OFF to end check-ins.`:"Use SNOOZE 1 through SNOOZE 30 while approved check-ins are enabled.",userId);
+    }
+
     const savedReply = options.conversations.reply(message.id, userId);
     if (savedReply) return options.store.cacheReply(message.id, savedReply, userId);
     if (cached && !connectionReply) return cached;

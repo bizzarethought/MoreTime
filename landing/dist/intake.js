@@ -1,6 +1,8 @@
 (() => {
   const dialog = document.getElementById('intake-dialog');
   const form = document.getElementById('intake-form');
+  const manageForm = document.getElementById('manage-form');
+  let manageMode=false;
   const review = document.getElementById('intake-review');
   const title = document.getElementById('intake-title');
   const description = document.getElementById('intake-description');
@@ -30,6 +32,8 @@
   let backdropPointerDown = false;
   let currentIntake = null;
   let connection = null;
+  let verifiedConnection = null;
+  let emailTimer = null;
   let pendingRequest = null;
   let pollTimer = null;
   let taskVersion = 0;
@@ -37,6 +41,7 @@
 
   function stopRequests() {
     clearTimeout(pollTimer);
+    clearTimeout(emailTimer);
     pendingRequest?.abort();
     pendingRequest = null;
     taskVersion += 1;
@@ -53,13 +58,14 @@
 
   function showConnection() {
     form.hidden = true;
+    manageForm.hidden=true;
     review.hidden = true;
     connectPanel.hidden = false;
     title.textContent = 'One last step in Messages.';
     description.textContent = 'Confirm your number by replying to the message we sent.';
     step.textContent = '3 of 3 · Connect';
-    document.getElementById('intake-connect-heading').textContent = 'Your details have been received.';
-    document.getElementById('intake-connect-description').textContent = `We sent a connection message to ${document.getElementById('intake-review-phone').textContent}. Your bill details are saved while you connect; they have not been analyzed yet.`;
+    document.getElementById('intake-connect-heading').textContent = manageMode ? 'Verify your existing connection.' : 'Your details have been received.';
+    document.getElementById('intake-connect-description').textContent = manageMode ? 'We sent a verification message to your connected number. Reply with the MANAGE code to open your settings. Your saved conversation stays available.' : `We sent a connection message to ${document.getElementById('intake-review-phone').textContent}. Your bill details are saved while you connect; they have not been analyzed yet.`;
     document.getElementById('intake-code').textContent = connection.messageText;
     document.getElementById('intake-code-panel').hidden = false;
     document.getElementById('intake-copy-code').textContent = 'Copy';
@@ -87,11 +93,18 @@
       if (result.status === 'connected') {
         document.getElementById('intake-code-panel').hidden = true;
         document.getElementById('intake-code').textContent = '';
-        title.textContent = 'You’re connected.';
+        title.textContent = manageMode ? 'Manage your connection.' : 'You’re connected.';
         description.textContent = 'Your number and bill details are linked to this conversation.';
-        document.getElementById('intake-connect-heading').textContent = 'Continue in your conversation.';
-        document.getElementById('intake-connect-description').textContent = 'Check Messages for MoreTime’s reply. When the AI assistant is enabled, it will read your bill and ask you to confirm the important details. You can keep asking questions there. Closing this window does not end your conversation; reply STOP in Messages to disconnect and remove your saved case.';
+        document.getElementById('intake-connect-heading').textContent = manageMode ? 'Your settings are ready.' : 'Continue in your conversation.';
+        document.getElementById('intake-connect-description').textContent = manageMode ? 'Connect Gmail or adjust your check-ins below. This settings session lasts 20 minutes. You can return through Manage connection whenever you need to.' : 'Check Messages for MoreTime’s reply. When the AI assistant is enabled, it will read your bill and ask you to confirm the important details. You can keep asking questions there. Closing this window does not end your conversation; reply STOP in Messages to disconnect and remove your saved case.';
         document.getElementById('intake-connection-state').textContent = 'Connection confirmed.';
+        verifiedConnection=activeConnection;
+        document.getElementById('intake-engagement').hidden=false;
+        const first=new Date(Date.now()+3*86400000);
+        first.setMinutes(first.getMinutes()-first.getTimezoneOffset());
+        document.getElementById('followup-at').value=first.toISOString().slice(0,16);
+        void refreshEmail();
+        void refreshFollowUps();
         connection = null;
       } else if (result.status === 'expired' || Date.now() >= Date.parse(activeConnection.expiresAt)) {
         document.getElementById('intake-code-panel').hidden = true;
@@ -99,7 +112,8 @@
         document.getElementById('intake-connect-heading').textContent = 'This connection code has expired.';
         document.getElementById('intake-connect-description').textContent = 'Send a new code to try again with the details you entered. Your number has not been confirmed.';
         document.getElementById('intake-connection-state').textContent = 'Connection not completed.';
-        newCodeButton.hidden = false;
+        newCodeButton.hidden = manageMode;
+        if(manageMode){manageForm.hidden=false;document.getElementById('manage-error').hidden=true;}
       } else {
         pollTimer = setTimeout(checkConnection, 2000);
       }
@@ -229,6 +243,7 @@
   }
 
   function showStep(isReview, focusTitle = true) {
+    manageForm.hidden=true;
     form.hidden = isReview;
     review.hidden = !isReview;
     connectPanel.hidden = true;
@@ -243,6 +258,15 @@
 
   function clearForm() {
     stopRequests();
+    manageMode=false;
+    manageForm.reset();
+    manageForm.hidden=true;
+    verifiedConnection = null;
+    document.getElementById('intake-engagement').hidden=true;
+    document.getElementById('followup-consent').checked=false;
+    document.getElementById('email-consent').checked=false;
+    document.getElementById('followup-status').textContent='';
+    document.getElementById('email-status').textContent='';
     currentIntake = null;
     connection = null;
     consent.checked = false;
@@ -264,6 +288,22 @@
     showStep(false, false);
   }
 
+  document.querySelectorAll('[data-manage-connection]').forEach(button=>button.addEventListener('click',()=>{
+    opener=button;manageMode=true;form.hidden=true;review.hidden=true;connectPanel.hidden=true;manageForm.hidden=false;
+    document.getElementById('manage-error').hidden=true;
+    title.textContent='Manage your connection.';description.textContent='Verify your existing number to connect Gmail or adjust check-ins.';step.textContent='Settings · Verify';
+    dialog.showModal();document.body.classList.add('intake-open');title.focus({preventScroll:true});
+  }));
+  manageForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    const raw=document.getElementById('manage-phone').value.trim(),digits=raw.replace(/\D/g,''),national=digits.length===11&&digits.startsWith('1')?digits.slice(1):digits;
+    const output=document.getElementById('manage-error');
+    if(!/^\+?[\d\s().-]+$/.test(raw)||!/[2-9]\d{2}[2-9]\d{6}$/.test(national)||national.length!==10||!document.getElementById('manage-consent').checked){output.textContent='Enter your connected U.S. phone number and approve the verification message.';output.hidden=false;return;}
+    stopRequests();const version=taskVersion,button=document.getElementById('manage-submit');pendingRequest=new AbortController();button.disabled=true;output.hidden=true;
+    try{const result=await window.MoreTimeIntakeApi.manage(`+1${national}`,pendingRequest.signal);if(version!==taskVersion)return;connection=result;showConnection();void checkConnection();}
+    catch(error){if(version===taskVersion&&error.name!=='AbortError'){output.textContent=error.message||'Could not send verification. Try again.';output.hidden=false;}}
+    finally{button.disabled=false;}
+  });
   document.querySelectorAll('[data-open-intake]').forEach(button => {
     button.addEventListener('click', () => {
       opener = button;
@@ -419,6 +459,76 @@
       selection.addRange(range);
       button.textContent = 'Select & copy';
     }
+  });
+  async function refreshFollowUps() {
+    const active=verifiedConnection;if(!active)return;
+    try{
+      const saved=await window.MoreTimeIntakeApi.engagement(active,'/api/follow-ups');
+      if(active!==verifiedConnection)return;
+      document.getElementById('followup-status').textContent=saved.enabled?`Check-ins enabled. Next check-in: ${new Date(saved.nextAt).toLocaleString()}.`:'Check-ins are paused. Choose a time and approve them to enable.';
+      if(saved.nextAt){const local=new Date(saved.nextAt);local.setMinutes(local.getMinutes()-local.getTimezoneOffset());document.getElementById('followup-at').value=local.toISOString().slice(0,16);}
+    }catch{if(active===verifiedConnection)document.getElementById('followup-status').textContent='Could not load check-in settings. Your saved schedule has not been changed.';}
+  }
+  async function refreshEmail() {
+    if(!verifiedConnection||!dialog.open)return;
+    const active=verifiedConnection;
+    try {
+      const email=await window.MoreTimeIntakeApi.engagement(active,'/api/email');
+      if(active!==verifiedConnection)return;
+      document.getElementById('email-connect').disabled=!email.available;
+      document.getElementById('email-disconnect').hidden=!email.connected;
+      document.getElementById('email-status').textContent=email.connected?`Connected: ${email.email}. Alerts run while check-ins are enabled.`:email.available?'Gmail is not connected.':'Gmail connection is awaiting setup by the MoreTime team.';
+      return email.connected;
+    } catch {if(active===verifiedConnection)document.getElementById('email-status').textContent='Could not check Gmail connection. Try again.';}
+  }
+  document.getElementById('followup-save').addEventListener('click',async()=>{
+    if(!verifiedConnection)return;
+    const active=verifiedConnection,button=document.getElementById('followup-save'),output=document.getElementById('followup-status');
+    const at=new Date(document.getElementById('followup-at').value).getTime();
+    if(!document.getElementById('followup-consent').checked){output.textContent='Please approve the check-in schedule first.';return;}
+    if(!Number.isFinite(at)||at<Date.now()+60000||at>Date.now()+30*86400000){output.textContent='Choose a time at least a minute from now and within 30 days.';return;}
+    button.disabled=true;
+    try {
+      const saved=await window.MoreTimeIntakeApi.engagement(active,'/api/follow-ups','POST',{consent:true,nextAt:new Date(at).toISOString()});
+      if(active===verifiedConnection)output.textContent=`Check-ins enabled. First check-in: ${new Date(saved.nextAt).toLocaleString()}. Then weekly for up to 90 days.`;
+    }catch{if(active===verifiedConnection)output.textContent='Could not confirm the schedule. Try again.';}
+    finally{button.disabled=false;}
+  });
+  document.getElementById('followup-pause').addEventListener('click',async()=>{
+    if(!verifiedConnection)return;
+    const active=verifiedConnection;
+    try{await window.MoreTimeIntakeApi.engagement(active,'/api/follow-ups','DELETE');if(active===verifiedConnection)document.getElementById('followup-status').textContent='Check-ins and email notice alerts are paused.';}
+    catch{if(active===verifiedConnection)document.getElementById('followup-status').textContent='Could not confirm the pause. Reply FOLLOWUPS OFF in Messages.';}
+  });
+  document.getElementById('email-connect').addEventListener('click',async()=>{
+    if(!verifiedConnection)return;
+    const active=verifiedConnection,output=document.getElementById('email-status');
+    if(!document.getElementById('email-consent').checked){output.textContent='Please agree to email monitoring before connecting Gmail.';return;}
+    const popup=window.open('about:blank','moretime-email','popup,width=540,height=720');
+    if(!popup){output.textContent='Allow pop-ups for MoreTime, then try again.';return;}
+    const version=taskVersion;
+    try {
+      const result=await window.MoreTimeIntakeApi.engagement(active,'/api/email/connect','POST',{consent:true});
+      if(active!==verifiedConnection){popup.close();return;}
+      const auth=new URL(result.authorizationUrl);
+      if(auth.origin!=='https://accounts.google.com'||auth.pathname!=='/o/oauth2/v2/auth')throw new Error('invalid_redirect');
+      popup.location.href=auth.href;
+      output.textContent='Finish connecting in the Google window.';
+      let attempts=0;
+      const poll=async()=>{
+        if(version!==taskVersion||active!==verifiedConnection)return;
+        if(await refreshEmail())return;
+        if(version!==taskVersion||active!==verifiedConnection)return;
+        if(++attempts<100&&!popup.closed)emailTimer=setTimeout(poll,3000);
+      };
+      emailTimer=setTimeout(poll,3000);
+    }catch{popup.close();if(active===verifiedConnection)output.textContent='Gmail connection could not start. Try again after MoreTime email setup is complete.';}
+  });
+  document.getElementById('email-disconnect').addEventListener('click',async()=>{
+    if(!verifiedConnection)return;
+    const active=verifiedConnection;
+    try{await window.MoreTimeIntakeApi.engagement(active,'/api/email','DELETE');if(active===verifiedConnection)await refreshEmail();}
+    catch{if(active===verifiedConnection)document.getElementById('email-status').textContent='Could not confirm disconnection. Reply EMAIL OFF in Messages.';}
   });
   window.addEventListener('pagehide', () => {
     dialog.close();

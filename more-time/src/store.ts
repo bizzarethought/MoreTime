@@ -51,6 +51,11 @@ export class LinkStore {
         code_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL UNIQUE,
         expected_address TEXT NOT NULL, expires_at INTEGER NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS management_sessions (
+        token_hash TEXT PRIMARY KEY, code_hash TEXT UNIQUE, user_id TEXT NOT NULL,
+        expected_address TEXT NOT NULL, connected_at INTEGER NOT NULL,
+        code_expires_at INTEGER NOT NULL, expires_at INTEGER NOT NULL, verified INTEGER NOT NULL DEFAULT 0
+      );
       CREATE TABLE IF NOT EXISTS rate_limits (
         key TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at INTEGER NOT NULL
       );
@@ -100,9 +105,48 @@ export class LinkStore {
     return challenge;
   }
 
+  issueManagement(address: string) {
+    const result=this.transaction(()=>{
+      if(!this.allow(`manage:${address}`,3,TTL_MS))return undefined;
+      const connection=this.connectionForSender(address);
+      if(!connection)throw new ApiError(404,"connection_not_found","This number is not connected. Start a new conversation first.");
+      const accessToken=randomBytes(32).toString("hex"),code=randomBytes(12).toString("hex").toUpperCase();
+      this.db.prepare("DELETE FROM management_sessions WHERE user_id=? AND verified=0").run(connection.user_id);
+      this.db.prepare("INSERT INTO management_sessions VALUES (?,?,?,?,?,?,?,0)").run(hash(accessToken),hash(code),connection.user_id,address,connection.connected_at,this.now()+TTL_MS,this.now()+20*60_000);
+      return {intakeId:"management",accessToken,code,expiresAt:new Date(this.now()+TTL_MS).toISOString()};
+    });
+    if(!result)throw new ApiError(429,"rate_limited","Wait five minutes before requesting another management code.");
+    return result;
+  }
+  revokeManagement(token:string) {this.db.prepare("DELETE FROM management_sessions WHERE token_hash=?").run(hash(token));}
+  managementStatus(token:string): "pending" | "connected" | "expired" | undefined {
+    const row=this.db.prepare(`SELECT m.verified,m.code_expires_at,m.expires_at FROM management_sessions m
+      JOIN connections c ON c.user_id=m.user_id AND c.sender_address=m.expected_address AND c.connected_at=m.connected_at
+      WHERE m.token_hash=?`).get(hash(token)) as {verified:number;code_expires_at:number;expires_at:number}|undefined;
+    if(!row)return undefined;
+    if(row.expires_at<=this.now()||(!row.verified&&row.code_expires_at<=this.now()))return "expired";
+    return row.verified?"connected":"pending";
+  }
+  managementUser(token:string):string|undefined {
+    if(this.managementStatus(token)!=="connected")return undefined;
+    return (this.db.prepare("SELECT user_id FROM management_sessions WHERE token_hash=?").get(hash(token)) as {user_id:string}).user_id;
+  }
+  confirmManagement(sender:string,code:string):boolean {
+    return this.transaction(()=>{
+      if(!this.allow(`manage-attempt:${sender}`,5,60_000))return false;
+      const row=this.db.prepare(`SELECT m.token_hash FROM management_sessions m JOIN connections c
+        ON c.user_id=m.user_id AND c.sender_address=m.expected_address AND c.connected_at=m.connected_at
+        WHERE m.code_hash=? AND m.expected_address=? AND m.verified=0 AND m.code_expires_at>? AND m.expires_at>?`).get(hash(code.toUpperCase()),sender,this.now(),this.now()) as {token_hash:string}|undefined;
+      if(!row)return false;
+      this.db.prepare("UPDATE management_sessions SET verified=1,code_hash=NULL WHERE token_hash=?").run(row.token_hash);
+      return true;
+    });
+  }
+
   revokeCode(code: string): void { this.db.prepare("DELETE FROM link_challenges WHERE code_hash = ?").run(hash(code)); }
   cancelChallengesForSender(address: string): void {
     this.db.prepare("DELETE FROM link_challenges WHERE expected_address = ?").run(address);
+    this.db.prepare("DELETE FROM management_sessions WHERE expected_address=?").run(address);
   }
   connectionForUser(userId: string): Connection | undefined {
     return this.db.prepare("SELECT * FROM connections WHERE user_id = ?").get(userId) as Connection | undefined;
@@ -112,6 +156,7 @@ export class LinkStore {
   }
   disconnect(userId: string): void {
     this.transaction(() => {
+      this.db.prepare("DELETE FROM management_sessions WHERE user_id=?").run(userId);
       this.db.prepare("DELETE FROM connections WHERE user_id = ?").run(userId);
       this.db.prepare("DELETE FROM link_challenges WHERE user_id = ?").run(userId);
     });
@@ -169,6 +214,7 @@ export class LinkStore {
 
   markReplySent(id: string): void { this.db.prepare("UPDATE message_receipts SET reply_sent = 1 WHERE message_id = ?").run(id); }
   prune(): void {
+    this.db.prepare("DELETE FROM management_sessions WHERE expires_at<=?").run(this.now());
     this.db.prepare("DELETE FROM link_challenges WHERE expires_at <= ?").run(this.now());
     this.db.prepare("DELETE FROM rate_limits WHERE reset_at <= ?").run(this.now());
     this.db.prepare("DELETE FROM message_receipts WHERE created_at < ?").run(this.now() - 7 * 24 * 60 * 60_000);

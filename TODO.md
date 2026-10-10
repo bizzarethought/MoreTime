@@ -3,7 +3,19 @@
 The Gemini bill-reading and iMessage conversation flow is working. The next stage
 is to give MoreTime the tools and case tracking to pursue a resolution.
 
-- [ ] **Integrate email so the agent can contact the billing office itself.**
+- [x] **Add approved proactive follow-ups and optional Gmail linking on the landing page.**
+  After phone verification, users can approve a first check-in and weekly iMessage
+  follow-ups for up to 90 days. They can snooze or pause these in Messages. Optional
+  read-only Gmail OAuth monitors possible new payment notices while approval is
+  active. Google OAuth credentials must be configured before Gmail is usable.
+  See `more-time/docs/follow-ups-and-email.md` for setup and operating limits.
+
+- [ ] **Add case-specific, deadline-aware follow-ups.**
+  Use confirmed deadlines, planned calls, and expected response dates to offer
+  relevant schedules. The current worker sends a general case check-in on the
+  schedule approved by the user.
+
+- [ ] **Integrate outbound email so the agent can contact the billing office itself.**
   Connect an email service, send case-specific requests, receive replies, and keep
   each thread linked to the user's bill. Once the user authorizes outreach for the
   case, let the agent send and follow up within that scope without requiring the

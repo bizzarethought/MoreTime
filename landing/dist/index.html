@@ -23,6 +23,7 @@
 <p class="lead">Facing a shutoff or an urgent bill?<br>Discover your rights, find available relief,<br class="mobile-break"> and get help taking the next step.</p>
 <button class="button intake-trigger" type="button" data-open-intake aria-haspopup="dialog" aria-controls="intake-dialog">Start with a conversation <svg class="icon button-icon" aria-hidden="true" focusable="false"><use href="#icon-north_east"/></svg></button>
 <p class="caption">No sign-up needed. Continue with MoreTime in iMessage.</p>
+<button class="intake-secondary manage-trigger" type="button" data-manage-connection aria-haspopup="dialog" aria-controls="intake-dialog">Already connected? Manage connection</button>
 <div class="hero-art">
 <div class="art-tilt"><img src="assets/moretime-hero.png" alt="A paper bill curling through a blue conversation bubble, surrounded by playful colorful shapes" width="1536" height="1024" fetchpriority="high"></div>
 <div class="floating chat-blue">they’re cutting off my power.</div>
@@ -65,6 +66,12 @@
   <div class="intake-body">
     <h2 id="intake-title" tabindex="-1">Let’s start with your bill.</h2>
     <p class="intake-intro" id="intake-description">Add a bill or tell us what’s happening. A few details are enough to start.</p>
+    <form id="manage-form" hidden>
+      <div class="intake-field"><label for="manage-phone">Your connected phone number</label><input id="manage-phone" type="tel" autocomplete="tel" placeholder="(201) 555-0123" maxlength="30" required></div>
+      <label class="intake-consent"><input id="manage-consent" type="checkbox" required>Send me a verification iMessage to open my email and check-in settings.</label>
+      <p id="manage-error" class="intake-error" role="alert" hidden></p>
+      <button class="button intake-primary" id="manage-submit" type="submit">Send verification code</button>
+    </form>
     <form id="intake-form" novalidate>
       <div class="intake-field">
         <div class="intake-attachment" id="intake-dropzone">
@@ -143,6 +150,22 @@
       </div>
       <p class="intake-connection-state" id="intake-connection-state" role="status" aria-live="polite">Waiting for your reply in Messages…</p>
       <p class="intake-error" id="intake-poll-error" role="alert" hidden></p>
+      <section id="intake-engagement" hidden aria-label="Optional follow-ups and email">
+        <h3>Let MoreTime check back with you.</h3>
+        <p class="intake-hint">Choose your first check-in. With your approval, we’ll follow up in Messages then weekly for up to 90 days. Reply RESOLVED or FOLLOWUPS OFF to stop, SNOOZE 7 to wait a week, or STOP to disconnect.</p>
+        <label for="followup-at">First check-in (your local time)</label>
+        <div class="intake-field"><input id="followup-at" type="datetime-local" aria-describedby="followup-status"></div>
+        <label class="intake-consent"><input id="followup-consent" type="checkbox">I approve scheduled bill check-ins and, if I connect Gmail, alerts about possible new payment notices (at most once a day).</label>
+        <div class="engagement-actions"><button class="intake-secondary" id="followup-save" type="button">Enable check-ins</button>
+        <button class="intake-secondary" id="followup-pause" type="button">Pause check-ins</button></div>
+        <p id="followup-status" role="status" aria-live="polite"></p>
+        <h3>Connect your email (optional).</h3>
+        <p class="intake-hint">Connect Gmail so MoreTime can look for possible new payment notices. Google will ask for read access to your mailbox. Alerts require approved check-ins. MoreTime won’t send email. You can disconnect here or reply EMAIL OFF in Messages.</p>
+        <label class="intake-consent"><input id="email-consent" type="checkbox">I agree to connect Gmail for payment notice monitoring.</label>
+        <button class="intake-secondary" id="email-connect" type="button">Connect Gmail</button>
+        <button class="intake-secondary" id="email-disconnect" type="button" hidden>Disconnect Gmail</button>
+        <p id="email-status" role="status" aria-live="polite"></p>
+      </section>
       <div class="intake-review-actions">
         <button class="intake-secondary" id="intake-check-status" type="button" hidden>Check again</button>
         <button class="intake-secondary" id="intake-new-code" type="button" hidden>Send a new code</button>

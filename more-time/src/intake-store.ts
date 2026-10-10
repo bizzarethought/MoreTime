@@ -70,6 +70,12 @@ export class IntakeStore {
     };
   }
 
+  connectedUser(accessToken: string): string | undefined {
+    const row = this.db.prepare(`SELECT i.user_id FROM guest_intakes i
+      JOIN connections c ON c.user_id=i.user_id WHERE i.token_hash=?`).get(hash(accessToken)) as {user_id:string}|undefined;
+    return row?.user_id;
+  }
+
   remove(intakeId: string): void {
     this.db.prepare("DELETE FROM guest_intakes WHERE intake_id = ?").run(intakeId);
   }
