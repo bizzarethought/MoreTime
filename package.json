@@ -1,0 +1,11 @@
+{
+  "name": "moretime",
+  "private": true,
+  "scripts": {
+    "setup": "npm --prefix more-time install",
+    "start": "npm --prefix more-time run start",
+    "dev": "npm --prefix more-time run dev",
+    "typecheck": "npm --prefix more-time run typecheck",
+    "test": "npm --prefix more-time test"
+  }
+}
