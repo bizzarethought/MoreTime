@@ -10,7 +10,7 @@ MoreTime is a hackathon project for people dealing with overdue bills, utility s
 - Send an updated bill directly in iMessage, or reply STOP to disconnect and remove the saved case from the active database.
 - Try the landing page’s sample conversations about shutoffs, payment plans, and disputed bills.
 
-The sample conversations are scripted New Jersey examples. The live Gemini assistant can explain bills and draft requests; policy retrieval, contacting billers, and automatic follow-ups are still being built.
+The sample conversations are scripted New Jersey examples. The live Gemini assistant can explain bills and draft requests; policy research and a prefilled email form users can edit and send are planned next.
 
 ## Tech stack
 
@@ -99,8 +99,9 @@ for the sample PDF command, storage behavior, and current limits.
 
 ## Next
 
-The [TODO list](TODO.md) tracks agentic email outreach, internet research for biller
-contacts and local policies, consistent output from fast models, and a helpful,
+The [TODO list](TODO.md) tracks an editable, prefilled email form after an unhelpful
+call or when the user prefers email, internet research for biller contacts and
+local policies, consistent output from fast models, and a helpful,
 action-oriented tone. Bill extraction and conversational replies are connected
 through Gemini; facts still need user confirmation.
 
