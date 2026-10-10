@@ -5,11 +5,32 @@ Pitch: **Text us the bill you can't afford. We help you understand your options,
 
 ## Current status
 
-MoreTime is in the planning stage for a 24-hour hackathon. This repository currently contains the project README; application code, dependencies, messaging integration, datasets, and model training have not been added yet. The architecture and features below describe the intended build.
+MoreTime is in the planning stage for a 24-hour hackathon. The repository includes a responsive landing page with original 3D artwork, animated chat bubbles, and a scripted interactive preview. The backend, messaging integration, datasets, and model training have not been added yet. The architecture and features below describe the intended build.
 
 ## Getting started
 
-Start with the MVP scope, build order, and open decisions below. There are no installation or application run commands yet. Setup instructions will be added when the backend and its dependencies are implemented.
+The landing page uses plain HTML, CSS, and JavaScript with no dependencies. Open `landing/dist/index.html` in a browser, or serve it from the repository directory:
+
+```sh
+python3 -m http.server 8000 --directory landing/dist
+```
+
+Visit http://localhost:8000. Choose one of three fictional situations, continue to a sample follow-up, and replay the conversation. The preview does not send or save messages or accept real bills. Animation respects reduced-motion preferences and can also be paused in the navigation.
+
+The headline, “Life’s bigger than a bill,” has an animated circle that redraws on hover. The artwork floats and responds to desktop pointer movement, while primary buttons slowly change color. Icons use locally hosted Material Symbols; their license and source details are in the asset notes.
+
+Landing page files:
+
+- `landing/dist/index.html` — content and page structure.
+- `landing/dist/style.css` — responsive layouts and animations.
+- `landing/dist/app.js` — scenario selection, continuation, replay, and motion controls.
+- `landing/dist/assets/moretime-hero.png` — original generated illustration; see [asset notes](landing/ASSETS.md) for the generation prompt.
+
+The page was visually reviewed in Chrome at desktop and 390-pixel mobile widths. Browser checks covered image loading, mobile overflow, all three conversation flows, replay, rapid scenario switching, keyboard focus, and reduced motion.
+
+Sites hosting is configured in `landing/.openai/hosting.json`. Publication is pending; the Sites publishing helpers require Node.js, which is not installed in the current environment.
+
+For backend work, start with the MVP scope, build order, and open decisions below. Backend setup instructions will be added when implemented.
 
 To review local changes from the repository directory:
 
