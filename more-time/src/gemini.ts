@@ -186,7 +186,17 @@ export function createGeminiEngine(options: {
   }
   async function finishWithResearch(input: AssistantInput, bill: BillFacts,
     response: z.infer<typeof routingSchema>, initial = false): Promise<AssistantResult> {
-    if (!response.needsPolicyLookup) return finish(input, bill, response, initial);
+    if (!response.needsPolicyLookup) {
+      try { return finish(input, bill, response, initial); }
+      catch (error) {
+        if (!(error instanceof Error) || error.message !== "unsupported_contact_detail") throw error;
+        const selected = selectedStatement(bill, input.caseState ?? emptyCase());
+        // A model sometimes includes an unsourced contact without requesting a
+        // lookup. Research the public organization/department, never private prose.
+        response = { ...response, needsPolicyLookup: true,
+          researchQuery: `${selected?.biller ?? bill.biller ?? "biller"} official ${response.contact.department} contact details ${input.state ?? ""}` };
+      }
+    }
     if (!response.researchQuery?.trim()) throw new Error("gemini_missing_research_query");
     // Preserve user corrections and selection before research and synthesis.
     const memory = mergeCase(input.caseState ?? emptyCase(), response.caseUpdates, input, bill);
@@ -206,13 +216,31 @@ export function createGeminiEngine(options: {
       });
       return finish(finalInput, bill, fallback, initial);
     }
-    const answer = await call(finalInput, researchedSchema, false, bill, researchContext(research) +
-      "\nThe public lookup has completed; set needsPolicyLookup=false and needsDocument=false. Preserve the structured response fields and case memory. Put any sourced contact details in answer or nextStep, not in document contact indices. Select at least one sourceIds value matching the numeric id field of the provided sources, not their array positions. Cite the sources even when explaining uncertainty about applicability. Never put web research into caseUpdates.");
-    // Validate citations before allowing public contacts through the renderer.
-    citeResearch("", answer.sourceIds, research);
-    const evidence = research.sources.filter(source => answer.sourceIds.includes(source.id)).flatMap(source => source.excerpts).join("\n");
-    const result = finish(finalInput, bill, answer, initial, evidence);
-    return { ...result, reply: citeResearch(result.reply, answer.sourceIds, research) };
+    const instructions = researchContext(research) +
+      "\nThe public lookup has completed; set needsPolicyLookup=false and needsDocument=false. Preserve structured fields and case memory. Put sourced contacts in answer or nextStep, not document indices. Select at least one sourceIds value matching the numeric id of each source used. Every phone, email and website must appear in a cited excerpt or be a supplied source URL. Do not reconstruct a website from a page title. Cite sources even when explaining uncertainty. Never put web research into caseUpdates.";
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const answer = await call(finalInput, researchedSchema, false, bill, instructions + (attempt
+        ? "\nA prior answer contained an unsupported contact and was discarded. Return only contact values literally supported by the supplied excerpts and cite each containing source. If none is supported, omit numbers, emails and websites and give department guidance with source links." : ""));
+      citeResearch("", answer.sourceIds, research);
+      const sources = research.sources.filter(source => answer.sourceIds.includes(source.id));
+      // API-provided source links are evidence-backed navigation targets too.
+      const evidence = sources.flatMap(source => [...source.excerpts, source.url]).join("\n");
+      try {
+        const result = finish(finalInput, bill, answer, initial, evidence);
+        return { ...result, reply: citeResearch(result.reply, answer.sourceIds, research) };
+      } catch (error) {
+        if (!(error instanceof Error) || error.message !== "unsupported_contact_detail") throw error;
+        if (attempt === 0) continue;
+        const fallback = responseSchema.parse({ ...responseSchema.strip().parse(answer),
+          answer: "I found public sources, but couldn’t confirm a supported contact detail for that department.",
+          concern: null, nextStep: { kind: "contact_biller", text: "Use the contact on your statement or consult the source pages below for the right department." },
+          question: null, draft: null, needsDocument: false, needsPolicyLookup: false, caseUpdates: [],
+        });
+        const result = finish(finalInput, bill, fallback, initial);
+        return { ...result, reply: citeResearch(result.reply, answer.sourceIds, research) };
+      }
+    }
+    throw new Error("unsupported_contact_detail");
   }
   const respond = async (input: AssistantInput & { bill: BillFacts }): Promise<AssistantResult> => {
       // Tool/action status is factual application state, not a model guess.

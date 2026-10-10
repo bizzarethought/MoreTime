@@ -209,7 +209,11 @@ test("research cannot authorize contacts absent from cited passages", async () =
     if (stage === 2) return grounded;
     return { text: modelOutput({ reply: "Call (201) 555-9999 to discuss your bill.", sourceIds: [1] }) };
   } });
-  await assert.rejects(engine.respond!(input), /unsupported_contact_detail/);
+  const result = await engine.respond!(input);
+  assert.equal(stage, 4, "only one repair attempt");
+  assert.doesNotMatch(result.reply, /555-9999/);
+  assert.match(result.reply, /couldn’t confirm/);
+  assert.match(result.reply, /https:\/\/example.org\/billing/);
 });
 
 test("failed research never asks synthesis to fill in legal claims from memory", async () => {
@@ -238,4 +242,34 @@ test("free-tier research default remains independent of extraction and chat mode
   assert.equal(requests[0]?.model, "custom-chat");
   assert.equal(requests[1]?.model, "gemini-2.5-flash");
   assert.equal(requests[2]?.model, "custom-chat");
+});
+
+
+test("an unsupported contact is repaired using supplied source URLs", async () => {
+  let calls = 0;
+  const engine = createGeminiEngine({ apiKey: "fixture", generate: async () => {
+    calls++;
+    if (calls === 1) return { text: modelOutput({ reply: "Researching", needsPolicyLookup: true, researchQuery: "Official billing contact" }) };
+    if (calls === 2) return grounded;
+    return { text: modelOutput({ reply: calls === 3 ? "Call 201-555-9999." : "See https://example.org/billing for billing support.", sourceIds: [1] }) };
+  } });
+  const result = await engine.respond!(input);
+  assert.equal(calls, 4);
+  assert.doesNotMatch(result.reply, /555-9999|couldn’t confirm/);
+  assert.match(result.reply, /See https:\/\/example.org\/billing/);
+});
+
+test("unsourced contacts trigger research even when the model omitted its lookup flag", async () => {
+  const requests: GenerateContentParameters[] = [];
+  const engine = createGeminiEngine({ apiKey: "fixture", generate: async request => {
+    requests.push(request);
+    if (requests.length === 1) return { text: modelOutput({ reply: "Call 201-555-9999." }) };
+    if (requests.length === 2) return grounded;
+    return { text: modelOutput({ reply: "See https://example.org/billing.", sourceIds: [1] }) };
+  } });
+  const result = await engine.respond!(input);
+  assert.equal(requests.length, 3);
+  assert.deepEqual(requests[1]!.config?.tools, [{ googleSearch: {} }]);
+  assert.doesNotMatch(JSON.stringify(requests[1]), /SECRET123|Private medical|555-9999/);
+  assert.doesNotMatch(result.reply, /555-9999/);
 });

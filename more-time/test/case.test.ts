@@ -156,3 +156,13 @@ test("policy answers keep a practical next step while distinguishing unverified 
   assert.equal(responseSchema.safeParse({ ...response(), nextStep: null }).success, false);
   assert.equal(responseSchema.safeParse({ ...response(), contact: null }).success, false);
 });
+
+
+test("equivalent phone formatting is accepted while invented extensions stay rejected", () => {
+  const sourced = bill([statement({ contacts: [{ label: "Billing", method: "phone", value: "201-555-0123", quote: "Billing", source: "document", page: 1 }] })]);
+  for (const answer of ["Call +1 (201) 555-0123.", "Call 201–555–0123.", "Call 201 555 0123."]) {
+    assert.doesNotThrow(() => validateResponse(response({ answer }), sourced));
+  }
+  assert.throws(() => validateResponse(response({ answer: "Call 201-555-0123 ext. 99." }), sourced), /unsupported_contact_detail/);
+  assert.throws(() => validateResponse(response({ answer: "Call 201–555–9999." }), sourced), /unsupported_contact_detail/);
+});

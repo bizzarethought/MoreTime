@@ -151,21 +151,39 @@ export function assessUrgency(bill: BillFacts, state: CaseState, today: string) 
   });
 }
 
+function contactTokens(text: string) {
+  const normalized = text.normalize("NFKC").replace(/[\u2010-\u2015\u2212]/g, "-");
+  const emailPattern = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+  const emails = normalized.match(emailPattern) ?? [];
+  const withoutEmails = normalized.replace(emailPattern, "");
+  const urls = withoutEmails.match(/(?:https?:\/\/|www\.)[^\s)\]<>]+|\b[A-Z0-9][A-Z0-9.-]*\.[A-Z]{2,}(?:\/[^\s)\]<>]*)?/gi) ?? [];
+  // Remove dates and URLs before scanning digits (source links may contain IDs).
+  const phoneText = withoutEmails.replace(/\b\d{4}-\d{2}-\d{2}\b/g, "").replace(/https?:\/\/[^\s]+/gi, "");
+  const phones = phoneText.match(/(?:\+\d[\d ().-]{7,}\d|(?:\+?1[ .-]?)?(?:\(\d{3}\)|\b\d{3})[ .-]?\d{3}[ .-]?\d{4}\b|\b\d{10,15}\b)(?:\s*(?:ext\.?|extension|x)\s*\d+)?/gi) ?? [];
+  return [...emails.map(value => ({ method: "email", value })), ...phones.map(value => ({ method: "phone", value })), ...urls.map(value => ({ method: "website", value }))];
+}
+
+function normalizedContact(method: string, value: string) {
+  if (method === "email") return value.toLowerCase();
+  if (method === "phone") {
+    const parts = value.normalize("NFKC").split(/\s*(?:ext\.?|extension|x)\s*/i);
+    let digits = parts[0]!.replace(/\D/g, "");
+    if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
+    return digits + (parts[1] ? "x" + parts[1].replace(/\D/g, "") : "");
+  }
+  const clean = value.replace(/[.,;:!?*]+$/, "");
+  try {
+    const url = new URL(/^https?:\/\//i.test(clean) ? clean : "https://" + clean);
+    return url.hostname.toLowerCase().replace(/^www\./, "") + (url.port ? ":" + url.port : "") + url.pathname.replace(/\/$/, "") + url.search + url.hash;
+  } catch { return clean; }
+}
+
 function containsUnsupportedContact(text: string, bill: BillFacts, researchEvidence = "") {
-  const contacts: { method: string; value: string }[] = statementsFor(bill).flatMap(item => item.contacts);
-  // Only cited, attributed web passages can authorize additional contact values.
-  for (const value of researchEvidence.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? []) contacts.push({ method: "email", value });
-  for (const value of researchEvidence.match(/(?:\+\d[\d ()-]{7,}\d|\(\d{3}\)[\d -]{6,}\d|\b\d{3}[- .]\d{3}[- .]\d{4}\b|\b\d{10,15}\b)/g) ?? []) contacts.push({ method: "phone", value });
-  const webWithoutEmails = researchEvidence.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "");
-  for (const value of webWithoutEmails.match(/(?:https?:\/\/|www\.)[^\s)]+|\b[A-Z0-9][A-Z0-9.-]*\.[A-Z]{2,}(?:\/[^\s)]*)?/gi) ?? []) contacts.push({ method: "website", value });
-  const addresses = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? [];
-  const phones = (text.replace(/\b\d{4}-\d{2}-\d{2}\b/g, "").match(/(?:\+\d[\d ()-]{7,}\d|\(\d{3}\)[\d -]{6,}\d|\b\d{3}[- .]\d{3}[- .]\d{4}\b|\b\d{10,15}\b)/g) ?? []);
-  const withoutEmails = text.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "");
-  const urls = withoutEmails.match(/(?:https?:\/\/|www\.)[^\s)]+|\b[A-Z0-9][A-Z0-9.-]*\.[A-Z]{2,}(?:\/[^\s)]*)?/gi) ?? [];
-  const normalizedUrl = (value: string) => value.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/[.,;]+$/, "").replace(/\/$/, "");
-  return addresses.some(value => !contacts.some(contact => contact.method === "email" && contact.value.toLowerCase() === value.toLowerCase()))
-    || phones.some(value => !contacts.some(contact => contact.method === "phone" && contact.value.replace(/\D/g, "") === value.replace(/\D/g, "")))
-    || urls.some(value => !contacts.some(contact => contact.method === "website" && normalizedUrl(contact.value) === normalizedUrl(value)));
+  // Compare the SAME tokenization on both sides. Formatting can differ, but
+  // changed digits, extensions, email addresses and URL paths remain unsupported.
+  const contacts = [...statementsFor(bill).flatMap(item => item.contacts), ...contactTokens(researchEvidence)];
+  return contactTokens(text).some(candidate => !contacts.some(contact => contact.method === candidate.method &&
+    normalizedContact(contact.method, contact.value) === normalizedContact(candidate.method, candidate.value)));
 }
 
 export function validateResponse(response: StructuredResponse, bill: BillFacts, researchEvidence = "") {
