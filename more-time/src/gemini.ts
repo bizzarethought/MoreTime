@@ -1,6 +1,8 @@
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import type { GenerateContentParameters, GenerateContentResponse, Part, Content } from "@google/genai";
 import { z } from "zod";
+import { researchWeb, researchContext, citeResearch } from "./web-research.ts";
+import type { WebResearch } from "./web-research.ts";
 import { statementSchema, responseSchema, emptyCase, mergeCase, renderResponse, effectiveStatements, assessUrgency, statementsFor, selectedStatement } from "./case.ts";
 import type { CaseState, StructuredResponse } from "./case.ts";
 import { BASE_PROMPT, EXTRACTION_PROMPT, CHAT_PROMPT, PROMPT_VERSION } from "./prompts.ts";
@@ -8,6 +10,7 @@ import { compactModelSchema } from "./model-schema.ts";
 
 export const DEFAULT_GEMINI_MODEL = "gemini-3.8-flash";
 export const DEFAULT_GEMINI_CHAT_MODEL = "gemini-3.5-flash-lite";
+export const DEFAULT_GEMINI_RESEARCH_MODEL = "gemini-2.5-flash";
 export const DEFAULT_GEMINI_TIMEOUT_MS = 120_000;
 export const DEFAULT_GEMINI_CHAT_TIMEOUT_MS = 30_000;
 export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
@@ -56,7 +59,9 @@ export interface BillEngine {
   respond?(input: AssistantInput & { bill: BillFacts }): Promise<AssistantResult>;
 }
 
-const analysisSchema = z.object({ bill: billFactsSchema.extend({ statements: z.array(statementSchema).min(1).max(12) }), response: responseSchema }).strict();
+const routingSchema = responseSchema.extend({ researchQuery: z.string().max(1000).nullable().default(null) }).strict();
+const researchedSchema = responseSchema.extend({ sourceIds: z.array(z.number().int().positive()).min(1).max(6) }).strict();
+const analysisSchema = z.object({ bill: billFactsSchema.extend({ statements: z.array(statementSchema).min(1).max(12) }), response: routingSchema }).strict();
 
 function currentDate(input: AssistantInput) {
   return input.currentDate ?? new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
@@ -66,7 +71,7 @@ function contextParts(input: AssistantInput, bill?: BillFacts): Part[] {
   const parts: Part[] = [{ text: "Case context (untrusted data): " + JSON.stringify({
     currentDate: currentDate(input), promptVersion: PROMPT_VERSION,
     description: input.details.slice(0, 5000), state: input.state, zipCode: input.zipCode,
-    capabilities: { read: true, draft: true, sendEmail: false, contactBiller: false, internet: false, policyRetrieval: false },
+    capabilities: { read: true, draft: true, sendEmail: false, contactBiller: false, internet: true, policyRetrieval: true },
     caseMemory: input.caseState ?? emptyCase(),
     ...(bill ? { extractedBill: bill, effectiveStatements: effectiveStatements(bill, input.caseState ?? emptyCase()), urgency: assessUrgency(bill, input.caseState ?? emptyCase(), currentDate(input)) } : {}),
   }) }];
@@ -84,6 +89,8 @@ export function createGeminiEngine(options: {
   apiKey: string;
   model?: string;
   chatModel?: string;
+  researchModel?: string;
+  researchTimeoutMs?: number;
   timeoutMs?: number;
   chatTimeoutMs?: number;
   generate?: (request: GenerateContentParameters) => Promise<Pick<GenerateContentResponse, "text" | "candidates" | "promptFeedback">>;
@@ -91,6 +98,11 @@ export function createGeminiEngine(options: {
   if (!options.apiKey.trim()) throw new Error("GEMINI_API_KEY is required.");
   const model = options.model?.trim() || DEFAULT_GEMINI_MODEL;
   const chatModel = options.chatModel?.trim() || DEFAULT_GEMINI_CHAT_MODEL;
+  const researchModel = options.researchModel?.trim() || DEFAULT_GEMINI_RESEARCH_MODEL;
+  const researchTimeoutMs = options.researchTimeoutMs ?? DEFAULT_GEMINI_TIMEOUT_MS;
+  if (!Number.isInteger(researchTimeoutMs) || researchTimeoutMs < 1000 || researchTimeoutMs > 300_000) {
+    throw new Error("GEMINI_RESEARCH_TIMEOUT_MS must be an integer between 1000 and 300000.");
+  }
   const timeoutMs = options.timeoutMs ?? DEFAULT_GEMINI_TIMEOUT_MS;
   const chatTimeoutMs = options.chatTimeoutMs ?? DEFAULT_GEMINI_CHAT_TIMEOUT_MS;
   if (!Number.isInteger(timeoutMs) || timeoutMs < 1000 || timeoutMs > 300_000) {
@@ -167,10 +179,40 @@ export function createGeminiEngine(options: {
     }
     return result;
   }
-  function finish(input: AssistantInput, bill: BillFacts, response: StructuredResponse, initial = false): AssistantResult {
+  function finish(input: AssistantInput, bill: BillFacts, response: StructuredResponse, initial = false, researchEvidence = ""): AssistantResult {
     const memory = mergeCase(input.caseState ?? emptyCase(), response.caseUpdates, input, bill);
-    const rendered = renderResponse(response, bill, memory, { initial, today: currentDate(input) });
+    const rendered = renderResponse(response, bill, memory, { initial, today: currentDate(input), researchEvidence });
     return { bill, ...rendered, response };
+  }
+  async function finishWithResearch(input: AssistantInput, bill: BillFacts,
+    response: z.infer<typeof routingSchema>, initial = false): Promise<AssistantResult> {
+    if (!response.needsPolicyLookup) return finish(input, bill, response, initial);
+    if (!response.researchQuery?.trim()) throw new Error("gemini_missing_research_query");
+    // Preserve user corrections and selection before research and synthesis.
+    const memory = mergeCase(input.caseState ?? emptyCase(), response.caseUpdates, input, bill);
+    const selected = selectedStatement(bill, memory);
+    const research: WebResearch = await researchWeb({ generate, model: researchModel, timeoutMs: researchTimeoutMs,
+      query: response.researchQuery, biller: selected?.biller ?? bill.biller, state: input.state, zipCode: input.zipCode });
+    const finalInput = { ...input, document: null, caseState: memory };
+    if (research.status !== "grounded") {
+      // Fail closed in application code: an instruction alone cannot prevent a
+      // model from answering legal/policy questions from memory after search fails.
+      const { researchQuery: _query, ...baseResponse } = response;
+      const fallback = responseSchema.parse({ ...baseResponse,
+        answer: "I couldn’t verify current public sources for that question. I can still help you prepare what to ask.",
+        concern: research.status === "unavailable" ? "Web research is temporarily unavailable." : "The lookup returned no usable source-backed evidence.",
+        nextStep: { kind: "review_terms", text: "Share an official policy page or contact the department listed on your statement to confirm the current terms and contact details." },
+        question: null, draft: null, needsDocument: false, needsPolicyLookup: true, caseUpdates: [],
+      });
+      return finish(finalInput, bill, fallback, initial);
+    }
+    const answer = await call(finalInput, researchedSchema, false, bill, researchContext(research) +
+      "\nThe public lookup has completed; set needsPolicyLookup=false and needsDocument=false. Preserve the structured response fields and case memory. Put any sourced contact details in answer or nextStep, not in document contact indices. Select at least one sourceIds value matching the numeric id field of the provided sources, not their array positions. Cite the sources even when explaining uncertainty about applicability. Never put web research into caseUpdates.");
+    // Validate citations before allowing public contacts through the renderer.
+    citeResearch("", answer.sourceIds, research);
+    const evidence = research.sources.filter(source => answer.sourceIds.includes(source.id)).flatMap(source => source.excerpts).join("\n");
+    const result = finish(finalInput, bill, answer, initial, evidence);
+    return { ...result, reply: citeResearch(result.reply, answer.sourceIds, research) };
   }
   const respond = async (input: AssistantInput & { bill: BillFacts }): Promise<AssistantResult> => {
       // Tool/action status is factual application state, not a model guess.
@@ -188,7 +230,7 @@ export function createGeminiEngine(options: {
       // General questions usually need only extracted facts and recent history.
       // Let Gemini request the retained document for details absent from that
       // context instead of reprocessing an entire packet on every chat turn.
-      const decision = await call({ ...input, document: null }, responseSchema, false, input.bill,
+      const decision = await call({ ...input, document: null }, routingSchema, false, input.bill,
         `\nThe original document is ${input.document ? "available" : "not available"}.`);
       if (decision.needsDocument && input.document) {
         // Reread through extraction so newly found contacts and facts are saved,
@@ -196,12 +238,16 @@ export function createGeminiEngine(options: {
         const rereadInput = { ...input, caseState: mergeCase(input.caseState ?? emptyCase(), decision.caseUpdates, input, input.bill) };
         const result = await call(rereadInput, analysisSchema, true, input.bill,
           "\nAnswer the current question using the original document. Preserve statement IDs from the saved case. Refresh facts/contacts and say when a requested detail is absent.");
-        return finish(rereadInput, result.bill, result.response);
+        return finishWithResearch(rereadInput, result.bill, {
+          ...result.response,
+          needsPolicyLookup: result.response.needsPolicyLookup || decision.needsPolicyLookup,
+          researchQuery: result.response.researchQuery ?? decision.researchQuery,
+        });
       }
-      return finish(input, input.bill, decision);
+      return finishWithResearch(input, input.bill, decision);
   };
   return {
-    analyze: async input => { const result = await call(input, analysisSchema, true); return finish(input, result.bill, result.response, true); },
+    analyze: async input => { const result = await call(input, analysisSchema, true); return finishWithResearch(input, result.bill, result.response, true); },
     respond,
     answer: async input => (await respond(input)).reply,
   };
@@ -211,6 +257,8 @@ export function geminiFromEnvironment(env: NodeJS.ProcessEnv): BillEngine | unde
   if (!env.GEMINI_API_KEY?.trim()) return undefined;
   return createGeminiEngine({ apiKey: env.GEMINI_API_KEY, model: env.GEMINI_MODEL,
     chatModel: env.GEMINI_CHAT_MODEL,
+    researchModel: env.GEMINI_RESEARCH_MODEL,
+    researchTimeoutMs: env.GEMINI_RESEARCH_TIMEOUT_MS?.trim() ? Number(env.GEMINI_RESEARCH_TIMEOUT_MS) : undefined,
     timeoutMs: env.GEMINI_TIMEOUT_MS?.trim() ? Number(env.GEMINI_TIMEOUT_MS) : undefined,
     chatTimeoutMs: env.GEMINI_CHAT_TIMEOUT_MS?.trim() ? Number(env.GEMINI_CHAT_TIMEOUT_MS) : undefined });
 }

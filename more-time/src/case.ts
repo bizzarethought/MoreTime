@@ -151,8 +151,13 @@ export function assessUrgency(bill: BillFacts, state: CaseState, today: string) 
   });
 }
 
-function containsUnsupportedContact(text: string, bill: BillFacts) {
-  const contacts = statementsFor(bill).flatMap(item => item.contacts);
+function containsUnsupportedContact(text: string, bill: BillFacts, researchEvidence = "") {
+  const contacts: { method: string; value: string }[] = statementsFor(bill).flatMap(item => item.contacts);
+  // Only cited, attributed web passages can authorize additional contact values.
+  for (const value of researchEvidence.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? []) contacts.push({ method: "email", value });
+  for (const value of researchEvidence.match(/(?:\+\d[\d ()-]{7,}\d|\(\d{3}\)[\d -]{6,}\d|\b\d{3}[- .]\d{3}[- .]\d{4}\b|\b\d{10,15}\b)/g) ?? []) contacts.push({ method: "phone", value });
+  const webWithoutEmails = researchEvidence.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "");
+  for (const value of webWithoutEmails.match(/(?:https?:\/\/|www\.)[^\s)]+|\b[A-Z0-9][A-Z0-9.-]*\.[A-Z]{2,}(?:\/[^\s)]*)?/gi) ?? []) contacts.push({ method: "website", value });
   const addresses = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? [];
   const phones = (text.replace(/\b\d{4}-\d{2}-\d{2}\b/g, "").match(/(?:\+\d[\d ()-]{7,}\d|\(\d{3}\)[\d -]{6,}\d|\b\d{3}[- .]\d{3}[- .]\d{4}\b|\b\d{10,15}\b)/g) ?? []);
   const withoutEmails = text.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "");
@@ -163,7 +168,7 @@ function containsUnsupportedContact(text: string, bill: BillFacts) {
     || urls.some(value => !contacts.some(contact => contact.method === "website" && normalizedUrl(contact.value) === normalizedUrl(value)));
 }
 
-export function validateResponse(response: StructuredResponse, bill: BillFacts) {
+export function validateResponse(response: StructuredResponse, bill: BillFacts, researchEvidence = "") {
   const statements = statementsFor(bill);
   const ids = statements.map(item => item.id);
   if (response.supportingStatementIds.some(id => !ids.includes(id)) || (response.question?.statementId && !ids.includes(response.question.statementId))) throw new Error("invalid_fact_reference");
@@ -171,14 +176,14 @@ export function validateResponse(response: StructuredResponse, bill: BillFacts) 
   if (response.contact.statementId && !target) throw new Error("invalid_fact_reference");
   if (response.contact.contactIndex !== null && !target?.contacts[response.contact.contactIndex]) throw new Error("invalid_contact_reference");
   const text = [response.answer, response.concern, response.nextStep.text, response.question?.text, response.draft].filter(Boolean).join("\n");
-  if (containsUnsupportedContact(text, bill)) throw new Error("unsupported_contact_detail");
+  if (containsUnsupportedContact(text, bill, researchEvidence)) throw new Error("unsupported_contact_detail");
   // Drafts are explicitly rendered as text for the user to send. Action claims
   // elsewhere cannot be backed by tools because outreach is not implemented.
   if (/\b(?:I|we|MoreTime)\s+(?:have\s+|already\s+)?(?:sent|emailed|called|contacted|negotiated|submitted|scheduled|secured)\b|\b(?:I|we)\s+will\s+(?:email|call|contact|send|negotiate|submit|schedule)\b|\b(?:I|we)[’']ll\s+(?:email|call|contact|send|negotiate|submit|schedule)\b|\b(?:your\s+)?(?:extension|payment plan|hold)\s+(?:is|has been)\s+(?:approved|confirmed|secured)\b/i.test([response.answer, response.concern, response.nextStep.text].join(" "))) throw new Error("unsupported_action_claim");
 }
 
-export function renderResponse(response: StructuredResponse, bill: BillFacts, state: CaseState, options: { initial?: boolean; today: string }): { reply: string; caseState: CaseState } {
-  validateResponse(response, bill);
+export function renderResponse(response: StructuredResponse, bill: BillFacts, state: CaseState, options: { initial?: boolean; today: string; researchEvidence?: string }): { reply: string; caseState: CaseState } {
+  validateResponse(response, bill, options.researchEvidence);
   const selected = selectedStatement(bill, state);
   const needsSelection = !selected && statementsFor(bill).length > 1 && ["payment_plan", "draft", "dispute"].includes(response.intent);
   const separateAmounts = !selected && statementsFor(bill).length > 1 && response.intent === "amount";
@@ -186,7 +191,9 @@ export function renderResponse(response: StructuredResponse, bill: BillFacts, st
   const contact = target?.contacts[response.contact.contactIndex ?? -1];
   const departments = { billing: "billing office", financial_assistance: "financial assistance team", insurance: "insurer’s member services team", property_manager: "property manager", collections: "collections contact listed on the notice" };
   const department = response.contact.department === "billing" && target?.billType === "utility" ? "billing/customer assistance team" : departments[response.contact.department];
-  const contactText = contact
+  const contactText = options.researchEvidence
+    ? `Who to contact: ${target?.biller ?? bill.biller ?? "your biller"}’s ${department}. Refer to the sourced guidance above and the contact listed on your statement.`
+    : contact
     ? `Who to contact: ${contact.label} — ${contact.value} (${contact.source === "document" ? "listed on the bill" : "provided by you"}; current details still need verification).`
     : `Who to contact: ${response.contact.department === "insurance" ? "your insurer’s member services team" : `${target?.biller ?? bill.biller ?? "your biller"}’s ${department}`}. Use the contact details on your statement or their official website; I haven’t verified a current number or email yet.`;
   const urgency = assessUrgency(bill, state, options.today);
@@ -213,7 +220,7 @@ export function renderResponse(response: StructuredResponse, bill: BillFacts, st
   }
   parts.push(`Next step: ${needsSelection || separateAmounts ? "Ask billing for the current balance on each statement and whether any notices overlap before proposing an arrangement." : response.nextStep.text}`,
     needsSelection || separateAmounts ? "Who to contact: the billing office listed on each statement. Current contact details still need verification." : contactText);
-  if (response.needsPolicyLookup || response.intent === "policy") parts.push("Current company terms and local protections still need an official source. I can help prepare the question to ask; I can’t confirm eligibility or protections from the bill alone.");
+  if (!options.researchEvidence && (response.needsPolicyLookup || response.intent === "policy")) parts.push("Current company terms and local protections still need an official source. I can help prepare the question to ask; I can’t confirm eligibility or protections from the bill alone.");
   if (response.draft && !needsSelection && !separateAmounts) parts.push(`Draft you can send:\n${response.draft}`);
   let question = response.question;
   const known = { monthly_budget: "monthlyBudget", first_payment_date: "firstPaymentDate", select_bill: "selectedStatementId", confirm_amount: "confirmedAmount", confirm_deadline: "confirmedDeadline" } as const;

@@ -10,20 +10,25 @@ MoreTime is a hackathon project for people dealing with overdue bills, utility s
 - Send an updated bill directly in iMessage, or reply STOP to disconnect and remove the saved case from the active database.
 - Try the landing page’s sample conversations about shutoffs, payment plans, and disputed bills.
 
-The sample conversations are scripted New Jersey examples. The live Gemini assistant can explain bills and draft requests; policy retrieval, contacting billers, and automatic follow-ups are still being built.
+The sample conversations are scripted New Jersey examples. The live Gemini assistant can explain bills and draft requests; policy research and a prefilled email form users can edit and send are planned next.
 
 ## Tech stack
 
-| Part | Technology |
-| --- | --- |
-| Frontend | HTML, CSS, and JavaScript |
-| Backend | TypeScript on Node.js 24+, using Node’s HTTP server |
-| Messaging | Photon Spectrum (`spectrum-ts`) for iMessage |
-| Bill reading and chat | Google Gemini through `@google/genai` |
-| Database | SQLite through Node’s built-in `node:sqlite` |
-| Model output validation | Zod |
-| Account authentication | JWT/JWKS verification with `jose` for account endpoints; guest intake needs no sign-in |
-| Development and tests | npm, `tsx`, TypeScript, and Node’s test runner |
+![HTML](https://img.shields.io/badge/HTML-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS](https://img.shields.io/badge/CSS-663399?style=for-the-badge&logo=css&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-5FA04E?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Photon Spectrum](https://img.shields.io/badge/Photon_Spectrum-111827?style=for-the-badge)
+![Gemini](https://img.shields.io/badge/Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
+![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)
+
+Photon Spectrum handles iMessage, Gemini reads bills and answers questions, and
+Zod validates model output. The backend uses Node’s HTTP server and built-in SQLite.
+Account endpoints use `jose` for JWT verification; guest intake needs no sign-in.
+Development uses `tsx` and Node’s test runner.
 
 ## Run locally
 
@@ -101,8 +106,9 @@ case memory, tone, output rules and the fictional `npm run gemini:eval` benchmar
 
 ## Next
 
-The [TODO list](TODO.md) tracks agentic email outreach, internet research for biller
-contacts and local policies, consistent output from fast models, and a helpful,
+The [TODO list](TODO.md) tracks an editable, prefilled email form after an unhelpful
+call or when the user prefers email, internet research for biller contacts and
+local policies, consistent output from fast models, and a helpful,
 action-oriented tone. Bill extraction and conversational replies are connected
 through Gemini; facts still need user confirmation.
 
