@@ -1,6 +1,7 @@
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import type { GenerateContentParameters, GenerateContentResponse, Part, Content } from "@google/genai";
 import { z } from "zod";
+import { researchWeb, researchContext, citeResearch } from "./web-research.ts";
 
 export const DEFAULT_GEMINI_MODEL = "gemini-3.8-flash";
 export const DEFAULT_GEMINI_CHAT_MODEL = "gemini-3.5-flash-lite";
@@ -48,8 +49,11 @@ export interface BillEngine {
 }
 
 const replySchema = z.object({ reply: z.string().min(1).max(2400) }).strict();
-const followupSchema = replySchema.extend({ needsDocument: z.boolean() }).strict();
-const analysisSchema = replySchema.extend({ bill: billFactsSchema }).strict();
+const lookupFields = { needsPolicyLookup: z.boolean().default(false),
+  researchQuery: z.string().max(1000).nullable().default(null) };
+const followupSchema = replySchema.extend({ needsDocument: z.boolean(), ...lookupFields }).strict();
+const researchedReplySchema = replySchema.extend({ sourceIds: z.array(z.number().int().positive()).max(6) }).strict();
+const analysisSchema = replySchema.extend({ bill: billFactsSchema, ...lookupFields }).strict();
 const SYSTEM = `You are MoreTime, a helpful bill assistant talking through iMessage.
 Help people understand bills they cannot afford and prepare practical next steps.
 The application can read bills, answer questions, and draft text. It has NO tools to call,
@@ -62,9 +66,10 @@ Ask the user to confirm important extracted facts, especially amounts and deadli
 Missing or ambiguous dates and amounts must remain unknown. A due date is different
 from a shutoff date. Do not invent a year or a shutoff warning. Explain discrepancies.
 User corrections in later messages take precedence over earlier extraction, but do not
-treat proposed arrangements as confirmed agreements. No policy-retrieval tool exists:
-do not invent citations, eligibility, local legal protections, or current provider policy.
-When needed, ask the user for the provider's actual terms or an official policy document.
+treat proposed arrangements as confirmed agreements. A separate Google Search research step
+is available for public contacts, policies, assistance programs and legal terms. Without
+provided web evidence, do not invent citations, eligibility, legal protections or current policy.
+When external evidence is needed, request a policy lookup; never pretend a lookup already ran.
 For immediate deadlines, recommend contacting the provider now to confirm the deadline
 and ask what assistance or arrangements are available. Do not promise a shutoff is paused.
 Historical notices do not establish a current balance or an upcoming deadline. Ask for
@@ -92,6 +97,8 @@ export function createGeminiEngine(options: {
   apiKey: string;
   model?: string;
   chatModel?: string;
+  researchModel?: string;
+  researchTimeoutMs?: number;
   timeoutMs?: number;
   chatTimeoutMs?: number;
   generate?: (request: GenerateContentParameters) => Promise<Pick<GenerateContentResponse, "text" | "candidates" | "promptFeedback">>;
@@ -99,6 +106,11 @@ export function createGeminiEngine(options: {
   if (!options.apiKey.trim()) throw new Error("GEMINI_API_KEY is required.");
   const model = options.model?.trim() || DEFAULT_GEMINI_MODEL;
   const chatModel = options.chatModel?.trim() || DEFAULT_GEMINI_CHAT_MODEL;
+  const researchModel = options.researchModel?.trim() || model;
+  const researchTimeoutMs = options.researchTimeoutMs ?? DEFAULT_GEMINI_TIMEOUT_MS;
+  if (!Number.isInteger(researchTimeoutMs) || researchTimeoutMs < 1000 || researchTimeoutMs > 300_000) {
+    throw new Error("GEMINI_RESEARCH_TIMEOUT_MS must be an integer between 1000 and 300000.");
+  }
   const timeoutMs = options.timeoutMs ?? DEFAULT_GEMINI_TIMEOUT_MS;
   const chatTimeoutMs = options.chatTimeoutMs ?? DEFAULT_GEMINI_CHAT_TIMEOUT_MS;
   if (!Number.isInteger(timeoutMs) || timeoutMs < 1000 || timeoutMs > 300_000) {
@@ -158,8 +170,21 @@ facts, write the first helpful reply, describing what you see and asking for con
     }
     return result;
   }
+  async function lookupAnswer(input: AssistantInput & { bill: BillFacts }, query: string | null, needsDocument: boolean): Promise<string> {
+    if (!query?.trim()) throw new Error("gemini_missing_research_query");
+    const research = await researchWeb({ generate, model: researchModel, timeoutMs: researchTimeoutMs,
+      query, biller: input.bill.biller, state: input.state, zipCode: input.zipCode });
+    const answer = await call({ ...input, document: needsDocument ? input.document : null },
+      researchedReplySchema, false, input.bill, researchContext(research));
+    return citeResearch(answer.reply, answer.sourceIds, research);
+  }
   return {
-    analyze: input => call(input, analysisSchema, true),
+    analyze: async input => {
+      const result = await call(input, analysisSchema, true, undefined,
+        "\nIf the current question requires public contacts, legal terms, current policies or local rules, set needsPolicyLookup=true and researchQuery to a public question with only organization, topic and jurisdiction. Omit private names, account details, addresses, balances and medical information. Otherwise set needsPolicyLookup=false and researchQuery=null.");
+      return { bill: result.bill, reply: result.needsPolicyLookup
+        ? await lookupAnswer({ ...input, bill: result.bill }, result.researchQuery, false) : result.reply };
+    },
     answer: async input => {
       // General questions usually need only extracted facts and recent history.
       // Let Gemini request the retained document for details absent from that
@@ -167,12 +192,22 @@ facts, write the first helpful reply, describing what you see and asking for con
       const decision = await call({ ...input, document: null }, followupSchema, false, input.bill,
         `\nAnswer using the saved facts and conversation. The original document is ${input.document ? "available" : "not available"}.
 Set needsDocument=false for general next-step questions, drafting, and questions whose
-answers are supported by saved context. Explain that payment arrangements require the
+answers are supported by saved context.
+Set needsPolicyLookup=true for who to contact, public phone/email/website lookups, current
+provider policy, assistance programs, legal terms/rights/protections, eligibility and local rules.
+Set it false for document interpretation, arithmetic, remembering user details or drafting
+without external claims. Set researchQuery to a concise public search question when lookup is
+needed; include only the organization, topic and jurisdiction. Omit personal names, addresses,
+account numbers, balances, medical details and other private information. For ambiguous identity
+or jurisdiction, research may explain general terms but ask for clarification before applying rules.
+For short follow-ups, resolve the public research topic using recent history. Never include
+private history in researchQuery. A lookup placeholder reply will not be shown. Explain that payment arrangements require the
 biller's confirmation; do not invent installment terms or current policies.
 Set needsDocument=true only if you need source details absent from this context and
 the original document is available; in that case use a short placeholder reply, which
 will not be shown. Do not guess missing charges, amounts, terms, or source quotes.
 If no document is available, ask the user for the missing information instead.`);
+      if (decision.needsPolicyLookup) return lookupAnswer(input, decision.researchQuery, decision.needsDocument);
       return decision.needsDocument && input.document
         ? (await call(input, replySchema, false, input.bill,
           "\nRead the original document for the requested details. If they are absent or unreadable, say so and ask for clarification.")).reply
@@ -185,6 +220,8 @@ export function geminiFromEnvironment(env: NodeJS.ProcessEnv): BillEngine | unde
   if (!env.GEMINI_API_KEY?.trim()) return undefined;
   return createGeminiEngine({ apiKey: env.GEMINI_API_KEY, model: env.GEMINI_MODEL,
     chatModel: env.GEMINI_CHAT_MODEL,
+    researchModel: env.GEMINI_RESEARCH_MODEL,
+    researchTimeoutMs: env.GEMINI_RESEARCH_TIMEOUT_MS?.trim() ? Number(env.GEMINI_RESEARCH_TIMEOUT_MS) : undefined,
     timeoutMs: env.GEMINI_TIMEOUT_MS?.trim() ? Number(env.GEMINI_TIMEOUT_MS) : undefined,
     chatTimeoutMs: env.GEMINI_CHAT_TIMEOUT_MS?.trim() ? Number(env.GEMINI_CHAT_TIMEOUT_MS) : undefined });
 }

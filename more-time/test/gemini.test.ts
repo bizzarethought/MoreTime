@@ -54,7 +54,7 @@ test("follow-up requests include the bill, location and recent history without p
   assert.ok(text.includes("Example Electric")); assert.ok(text.includes('\\"state\\":\\"NJ\\"'));
   assert.ok(!text.includes('Question 0"')); assert.ok(text.includes("Question 14"));
   assert.match(String(captured!.config?.systemInstruction), /NO tools to call/);
-  assert.match(String(captured!.config?.systemInstruction), /No policy-retrieval tool exists/);
+  assert.match(String(captured!.config?.systemInstruction), /Google Search research step/);
   assert.ok(!text.includes('"inlineData"'), "general questions do not resend the original packet");
 });
 

@@ -14,6 +14,9 @@ export function assistantErrorCode(error: unknown): string {
   if (error instanceof Error) {
     if (error.name === "TimeoutError" || error.name === "AbortError") return "request_timeout";
     switch (error.message) {
+      case "gemini_missing_research_query": return "missing_research_query";
+      case "gemini_invalid_research_source":
+      case "gemini_missing_research_source": return "invalid_research_source";
       case "gemini_missing_evidence": return "missing_bill_evidence";
       case "gemini_invalid_evidence_source": return "invalid_evidence_source";
       case "gemini_incomplete_response": return "incomplete_model_response";

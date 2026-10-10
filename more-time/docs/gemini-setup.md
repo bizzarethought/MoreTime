@@ -151,9 +151,12 @@ Photon echo demo and stop that demo; keep one MoreTime backend running.
 
 This connector can explain a bill, answer questions and draft a request. It does
 not contact billers, negotiate, submit assistance applications, change deadlines,
-schedule follow-ups or retrieve current policy sources. The prompt explicitly
-forbids claiming those actions or inventing eligibility, protections or citations.
-Policy retrieval and actual action tools are the next stage of the resolution agent.
+schedule follow-ups or change account status. Public web research is available for
+contacts, policies, assistance programs and legal terms, with attributed source links.
+The prompt forbids inventing eligibility, protections or completed actions.
+Search grounding is source attribution, not independent verification or a guarantee
+that a rule applies to the user. The assistant must confirm biller identity and
+service jurisdiction before applying specific rules.
 
 Automated tests inject fake model responses and cover schema validation, verification
 gating, conversation isolation/persistence, duplicates, failures/retries, STOP,
@@ -165,3 +168,59 @@ References: [Google GenAI SDK](https://ai.google.dev/gemini-api/docs/libraries),
 [Gemini 3.5 Flash-Lite](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite),
 [document understanding](https://ai.google.dev/gemini-api/docs/generate-content/document-processing),
 [structured outputs](https://ai.google.dev/gemini-api/docs/generate-content/structured-output).
+
+
+## Public web research
+
+Contact, policy, assistance and legal questions request a separate Gemini call with
+`tools: [{ googleSearch: {} }]`. The default research model is the configured bill
+analysis model (`gemini-3.8-flash` by default). Optional settings:
+
+```dotenv
+GEMINI_RESEARCH_MODEL=gemini-3.8-flash
+GEMINI_RESEARCH_TIMEOUT_MS=120000
+```
+
+No separate search API key is required. Your Gemini project must have access to the
+model and Search grounding; Google's search billing/quota applies. See
+[Google Search grounding](https://ai.google.dev/gemini-api/docs/generate-content/google-search).
+
+The initial structured response requests research with `needsPolicyLookup` and a
+`researchQuery` containing only public organization/topic/location information.
+The public research request omits the uploaded document, private description,
+balance and conversation history. Queries are model-composed with instructions to
+omit personal details, plus best-effort redaction for common identifiers; this is
+not a comprehensive data-loss prevention filter.
+
+Only text passages with SDK grounding support and HTTPS source URLs are supplied
+to the answer model. Search hits without attributed passages are excluded. The
+answer selects `sourceIds`; application code validates them and appends source
+links and a lookup date. URLs may be Google's grounding redirect links. Current
+contacts and legal rules must not fall back to model memory when search fails or
+returns no usable evidence. In that case the assistant explains the failed
+verification and asks for an official page or missing organization/location.
+Documents and arithmetic continue to use the normal flow without Search.
+
+Research adds a Search request and a synthesis request after the initial routing
+call. Each request has its own timeout; a research turn can take longer than a
+routine chat turn. The final reply and source links use existing conversation
+persistence and duplicate-delivery handling. Full research metadata is currently
+transient, with `searchSuggestionsHtml` retained in the research result for HTML
+clients; iMessage displays plain source links and cannot render the HTML widget.
+Any future HTML client must follow Google's Search Suggestions display requirements.
+
+Try: “Who do I contact about assistance?”, “What does debt validation mean?”, or
+“What shutoff protections apply in my service location?” Missing identity or
+jurisdiction should prompt clarification instead of selecting a similarly named
+biller or assuming ZIP code alone establishes applicable law.
+
+### Integrating with the structured-prompt branch
+
+This work is isolated on `gemini-web-grounding`, based on `main`; it does not modify
+or run the other task's checkout. Both branches edit `src/gemini.ts`, so integration
+may need a conflict resolution. Keep the structured case/response contract and add
+its research hook around `needsPolicyLookup`. Reuse `researchWeb`, `researchContext`
+and `citeResearch` from `src/web-research.ts`; add a public `researchQuery` to the
+routing response and `sourceIds` to the researched response. Preserve document
+contact indices separately from web source IDs. Replace the structured prompt's
+“no web tool” instruction with the evidence-aware instructions in this branch.
