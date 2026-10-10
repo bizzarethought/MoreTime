@@ -89,7 +89,7 @@ Stop the running backend with Ctrl+C and restart `npm start` from the repository
 root. Environment changes are loaded on startup. Ask a new question in the existing
 connected chat; you do not need another CONNECT code.
 
-Confirm startup prints `Gemini runtime: version=3 prompt=structured-v1 saved_facts_first=true` with
+Confirm startup prints `Gemini runtime: version=3 prompt=structured-web-v1 saved_facts_first=true` with
 `chat_timeout_ms=30000` (unless explicitly configured otherwise). This identifies
 the new process and its effective timeout without exposing credentials.
 
@@ -151,7 +151,7 @@ Photon echo demo and stop that demo; keep one MoreTime backend running.
 
 This connector can explain a bill, answer questions and draft a request. It does
 not contact billers, negotiate, submit assistance applications, change deadlines,
-schedule follow-ups or change account status. Public web research is available for
+change account status. Separately, the application can send user-approved scheduled iMessage check-ins and optional Gmail notice alerts; see [the guide](follow-ups-and-email.md). Public web research is available for
 contacts, policies, assistance programs and legal terms, with attributed source links.
 The prompt forbids inventing eligibility, protections or completed actions.
 Search grounding is source attribution, not independent verification or a guarantee
@@ -175,9 +175,7 @@ References: [Google GenAI SDK](https://ai.google.dev/gemini-api/docs/libraries),
 ## Public web research
 
 Contact, policy, assistance and legal questions request a separate Gemini call with
-`tools: [{ googleSearch: {} }]`. The combined branch defaults research to `gemini-2.5-flash`, which currently
-supports a free-tier Search allowance; extraction and chat keep their existing
-models. Optional settings:
+`tools: [{ googleSearch: {} }]`. The integrated implementation on main defaults research to `gemini-2.5-flash`; extraction and chat keep their existing models. Project access and quotas must be checked in AI Studio. Optional settings:
 
 ```dotenv
 GEMINI_RESEARCH_MODEL=gemini-2.5-flash
@@ -217,35 +215,17 @@ Try: “Who do I contact about assistance?”, “What does debt validation mean
 jurisdiction should prompt clarification instead of selecting a similarly named
 biller or assuming ZIP code alone establishes applicable law.
 
-### Combined testing branch
+### Integrated checks on main
 
-The resolved integration is on `test/combined-websearch-structureprompt` in
-`~/MoreTime/.worktrees/combined-test`. It includes both feature commits without
-changing main or either original feature branch. Structured case memory, statement
-selection, extraction evidence validation, contact indices and action safeguards
-remain in place. Public contact details must appear in cited research passages;
-web source IDs do not become document contact indices. Search failures return a
-fixed application-generated response, so legal claims cannot be filled in from
-model memory after a failed lookup.
-
-Run offline checks from that worktree:
+Both features are merged into main. From the repository root:
 
 ```sh
-npm run typecheck
-npm test
+./run.sh --check
+# Synthetic live calls; no Photon messages or real case/database access:
+cd more-time
+node --env-file-if-exists=.env --import tsx src/gemini-combined-check.ts
+# Or select only research samples:
+node --env-file-if-exists=.env --import tsx src/gemini-combined-check.ts official-contact legal-term
 ```
 
-With `GEMINI_API_KEY` already exported, run synthetic live checks (no Photon or
-real case/database access):
-
-```sh
-npm --prefix more-time run gemini:combined-check
-```
-
-Add `-- official-contact legal-term` to test just the research questions.
-`GEMINI_RESEARCH_MODEL` can select another supported research model. Search quota
-is project/model dependent; successful normal chat does not prove Search access.
-See Google's [pricing](https://ai.google.dev/gemini-api/docs/pricing) and
-[rate limits](https://ai.google.dev/gemini-api/docs/rate-limits). In this session,
-3.8 Flash and 3.5 Flash-Lite research returned 429, and 2.5 Flash-Lite was not
-available to the project. Gemini 2.5 Flash returned grounding metadata.
+The combined-check npm script expects an already exported `GEMINI_API_KEY`; the commands above load local runtime configuration without printing credentials. Search quota is project/model dependent; successful routine chat does not prove Search access. In development, 3.8 Flash and 3.5 Flash-Lite Search returned 429, while 2.5 Flash returned grounding metadata. See [combined validation](combined-testing.md) and [demo steps](demo.md).

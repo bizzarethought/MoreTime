@@ -1,6 +1,6 @@
 # Structured prompt engine
 
-`structured-v1` lives in `src/prompts.ts`. This tunes instructions and examples;
+`structured-web-v1` lives in `src/prompts.ts`. This tunes instructions and examples;
 it does not train new model weights. The same output contract is used by the
 document model and the faster chat model, so presentation and case memory do not
 depend on each model inventing its own format.
@@ -88,9 +88,9 @@ The backend:
   90 days old prompts confirmation of current status. These are product heuristics,
   not legal deadlines or protections. A past action date does not prove it occurred.
 
-Email, web research, live policy verification and reminders remain on TODO.md.
-`needsPolicyLookup` marks a need for future research; it does not invoke a tool.
-There are no newly claimed legal protections, verified contacts or confirmed holds.
+`needsPolicyLookup` and a public `researchQuery` route to a separate Gemini Google Search request, followed by structured synthesis. Only cited excerpts and supplied source URLs authorize additional contact details. Equivalent phone formatting is accepted; unsupported contacts get one repair attempt, then a fixed fallback with source links. A contact emitted without a lookup flag can also trigger public research. Failed/unattributed lookups use an application-generated fallback instead of legal claims from model memory. Source attribution does not establish eligibility or guarantee a rule applies.
+
+Approved scheduled check-ins and optional read-only Gmail alerts are separate application features; see [their guide](follow-ups-and-email.md). Outgoing biller email, negotiation and confirmed holds are not implemented.
 
 ## Minimum questions and checks
 
@@ -107,9 +107,9 @@ There are no newly claimed legal protections, verified contacts or confirmed hol
 | Could I get assistance? | Identify the assistance team and missing eligibility facts. |
 | Is this EOB payable? | Compare with the provider statement and insurer processing. |
 | How do I dispute it? | Prepare a specific itemization/review request. |
-| Who do I contact? | Printed source contact, or appropriate department with verification pending. |
+| Who do I contact? | Printed contact or cited public research; department guidance when a detail cannot be supported. |
 | Can you draft the request? | Ready-to-send user draft, explicitly unsent. |
-| What rules apply here? | Require current official company/local sources and service location. |
+| What rules apply here? | Research current company/local sources, cite them and clarify service jurisdiction/applicability. |
 | What have you done? | Honest application status; no invented email, hold or agreement. |
 | The amount/date changed | Save a scoped user correction and preserve original source evidence. |
 | This is an old notice | Confirm current balance/status instead of announcing an imminent action. |

@@ -1,75 +1,23 @@
-# Combined structured prompt and web research testing
+# Integrated structured replies and web research
 
-Tested October 10, 2026 on local branch `test/combined-websearch-structureprompt`.
-Worktree: `/Users/rishikeshsrivatsan/MoreTime/.worktrees/combined-test`.
+Both features are merged into main. Validation on October 10, 2026 passed TypeScript checks and 108 tests (104 backend/integration tests and four runner tests). Contact repair was committed as `6b8c186`. These counts describe that revision, not an automatically maintained benchmark.
 
-Integrated commits:
+Coverage includes persistent budget/case memory, statement selection, simultaneous document rereading and public lookup, citations, contact normalization, one bounded repair attempt, unsupported-contact fallback, and public research when the model omitted its lookup flag. Invented contacts remain rejected by the validator. Failed research does not ask a model to fill legal claims from memory.
 
-- `2ab8f9e`: structured prompt/case engine.
-- `ccf0c11`: Gemini Google Search grounding.
+Synthetic live tests returned sourced contact and legal-term answers using Gemini 2.5 Flash; a contact lookup passed again after the contact repair. Saved-budget checks produced six proposed payments toward a fictional $180 balance at $30 monthly. No real bills or Photon messages were used. Earlier runs encountered quota limits and transient service failures; live success does not establish repeatability or legal accuracy.
 
-The integration preserves structured extraction, persistent case memory, statement
-selection, document contact provenance, deterministic installment calculations and
-application-controlled action status. It adds public research routing to both
-analysis and follow-up responses, with validated source IDs and cited contact
-passages. Routing fields are kept separate from document contacts. Failed research
-returns a fixed application response rather than asking the model for legal or
-policy claims from memory.
+## Repeat validation
 
-## Automated checks
-
-- TypeScript typechecking passed.
-- All 92 tests passed: 88 backend/integration tests and 4 runner tests.
-- Conflict marker scan and `git diff --check` passed.
-- Integration coverage includes simultaneous document rereading and public research,
-  preserving a user's updated budget through research/synthesis, rejecting contact
-  details absent from cited passages, and handling failed legal lookups without
-  unsourced synthesis.
-
-## Synthetic live checks
-
-No real bills, case databases or Photon messages were used. Existing runtime
-configuration was loaded only after explicit user authorization; credentials
-were not printed or copied.
-
-- Saved $30 budget: the structured response calculated six payments toward the
-  fictional $180 balance and treated the plan as a proposal.
-- Contact lookup: Gemini 2.5 Flash returned web grounding; the answer included
-  public source links and contact details supported by cited passages.
-- Legal-term lookup: Gemini 2.5 Flash returned a sourced explanation, with
-  jurisdiction/applicability context and a government source link.
-
-These passed in individual live runs. Earlier runs also exposed quota limits,
-transient Google service errors, and citation/contact validation failures. The
-suite verifies safe failure behavior; these checks are not a comprehensive
-assessment of model accuracy or repeatability. Research was materially slower
-than routine structured chat in these runs.
-
-Gemini 3.8 Flash and 3.5 Flash-Lite Search calls returned quota/rate-limit errors;
-2.5 Flash-Lite was unavailable to the configured project. The combined branch
-therefore defaults only the research step to `gemini-2.5-flash`. Existing extraction
-and chat model selections remain unchanged. `GEMINI_RESEARCH_MODEL` overrides it.
-Google currently lists a free-tier grounding allowance for 2.5 Flash; check the
-project's active limits in AI Studio before relying on that allowance.
-
-References: [Google pricing](https://ai.google.dev/gemini-api/docs/pricing),
-[Google rate limits](https://ai.google.dev/gemini-api/docs/rate-limits).
-
-## Repeat the checks
-
-From the combined worktree:
+From the repository root:
 
 ```sh
-npm run typecheck
-npm test
+./run.sh --check
+cd more-time
+node --env-file-if-exists=.env --import tsx src/gemini-combined-check.ts
+# Selected cases:
+node --env-file-if-exists=.env --import tsx src/gemini-combined-check.ts official-contact legal-term
 ```
 
-With a Gemini API key exported into the runtime environment:
+The live command loads existing runtime configuration without displaying secrets, makes Gemini API calls and prints fictional replies/public source links. It does not send iMessages or access real case databases. Research defaults to `gemini-2.5-flash`, independently of extraction/chat. Access and quota depend on the configured project. Review wording, jurisdiction, source authority and department role even when checks pass.
 
-```sh
-npm --prefix more-time run gemini:combined-check
-npm --prefix more-time run gemini:combined-check -- official-contact legal-term
-```
-
-The live command does not start the app or send iMessages. No branch was pushed,
-and main and the two original feature branches were not changed by integration.
+See [Gemini setup](gemini-setup.md), [structured response behavior](structured-prompt-engine.md), and [demo walkthrough](demo.md).

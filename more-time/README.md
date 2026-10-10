@@ -47,7 +47,7 @@ root to check Gemini independently without sending an iMessage.
 The [structured prompt guide](docs/structured-prompt-engine.md) explains extraction,
 response formatting, tone, case memory, and the live `npm run gemini:eval` benchmark.
 
-The assistant can explain bills and draft requests; contacting billers, policy
-retrieval and scheduled follow-ups are not implemented. Reply STOP to disconnect
-and remove the saved case from the active database.
+The assistant explains bills, remembers case facts, drafts requests and researches public contacts, policies and legal terms with cited sources. Unsupported contacts get one repair attempt followed by source links and department guidance if still unsupported. It does not contact billers or send email.
+
+Approved weekly iMessage check-ins and optional read-only Gmail payment-notice alerts are implemented. See [setup and controls](docs/follow-ups-and-email.md). Existing users reopen settings through **Manage connection** and verify a `MANAGE` code. Reply STOP to disconnect and remove the saved case and both integrations from the active database. See [the demo walkthrough](docs/demo.md).
 Run `npm run dev` for automatic restart after source edits.

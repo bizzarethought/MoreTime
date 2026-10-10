@@ -26,15 +26,15 @@ is to help users call their biller or send a request by email.
   Keep this to one outgoing email; receiving replies, managing threads, and
   automatic follow-ups are out of scope.
 
-- [ ] **Add internet research for the specific biller and location.**
-  Find billing-office phone numbers and email addresses from official sources.
-  Retrieve current company policies, assistance programs, payment-plan terms, and
-  applicable local rules using the biller and the ZIP code submitted with the
-  user's phone number. Confirm the relevant service location or jurisdiction
-  when needed. Save source links, retrieval dates, and supporting excerpts with
-  the case. Produce specific next steps grounded in those sources, ask for any
-  missing eligibility details, and explain when a contact or policy cannot be
-  verified. Keep website content separate from agent instructions.
+- [x] **Add public internet research for biller contacts and local questions.**
+  Gemini Google Search supplies attributed excerpts and source links for contact,
+  policy, assistance and legal-term questions. Structured synthesis preserves case
+  memory, validates cited contacts, and gives an honest fallback when research fails.
+
+- [ ] **Persist full research evidence and broaden source-quality evaluation.**
+  Replies retain source links and checked dates; complete excerpts and grounding
+  metadata remain transient. Evaluate jurisdiction, source authority, freshness,
+  contact department and applicability across more cases.
 
 - [x] **Implement a structured prompt and response contract for the fast model.**
   Versioned extraction/chat instructions, separate statement records, source

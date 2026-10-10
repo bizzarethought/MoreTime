@@ -9,8 +9,10 @@ MoreTime is a hackathon project for people dealing with overdue bills, utility s
 - After verification, Gemini reads the saved bill and answers follow-up questions in the same chat, using saved bill facts, persistent case memory and the last ten conversation turns. Structured replies include a next step and contact guidance, with printed contacts labeled as unverified current. This requires a configured Gemini API key.
 - Send an updated bill directly in iMessage, or reply STOP to disconnect and remove the saved case from the active database.
 - Try the landing page’s sample conversations about shutoffs, payment plans, and disputed bills.
+- Research public biller contacts, assistance, policies and legal terms through Gemini Google Search, with cited sources and a checked date.
+- Approve scheduled iMessage check-ins and optionally connect read-only Gmail for possible payment-notice alerts. Existing users can reopen settings through **Already connected? Manage connection**.
 
-The sample conversations are scripted New Jersey examples. The live Gemini assistant can explain bills and draft requests; policy research and a prefilled email form users can edit and send are planned next.
+The landing-page sample conversations are scripted New Jersey examples. Live answers run in iMessage. The assistant prepares drafts; sending email to billers and negotiating agreements are still planned. See the [demo walkthrough](more-time/docs/demo.md) and [check-in/Gmail setup](more-time/docs/follow-ups-and-email.md).
 
 ## Tech stack
 
@@ -62,7 +64,7 @@ npm run setup
 
 Set up `more-time/.env` using [the example configuration](more-time/.env.example). Add your Photon `PROJECT_ID` and `PROJECT_SECRET`, keeping any existing settings. Your Photon project needs iMessage access and an eligible demo recipient. Guest intake does not need a sign-in provider.
 
-Add `GEMINI_API_KEY` from [Google AI Studio](https://aistudio.google.com/apikey) to enable the assistant. Bill reading uses `GEMINI_MODEL` (default `gemini-3.8-flash`); routine chat uses `GEMINI_CHAT_MODEL` (default `gemini-3.5-flash-lite`). Without a Gemini key, phone verification still works, but bill analysis and chat are disabled.
+Add `GEMINI_API_KEY` from [Google AI Studio](https://aistudio.google.com/apikey) to enable the assistant. Bill reading uses `GEMINI_MODEL` (default `gemini-3.8-flash`); routine chat uses `GEMINI_CHAT_MODEL` (default `gemini-3.5-flash-lite`). Public Search uses `GEMINI_RESEARCH_MODEL` (default `gemini-2.5-flash`) and the same key; no additional search key is needed. Without a Gemini key, phone verification still works, but bill analysis and chat are disabled.
 
 Start the backend:
 
@@ -106,10 +108,6 @@ case memory, tone, output rules and the fictional `npm run gemini:eval` benchmar
 
 ## Next
 
-The [TODO list](TODO.md) tracks an editable, prefilled email form after an unhelpful
-call or when the user prefers email, internet research for biller contacts and
-local policies, consistent output from fast models, and a helpful,
-action-oriented tone. Bill extraction and conversational replies are connected
-through Gemini; facts still need user confirmation.
+The [TODO list](TODO.md) tracks an editable email-send form, deadline-aware check-ins, durable research evidence storage, and broader model evaluation. Structured replies, persistent case memory, public web research, approved check-ins and optional Gmail notice monitoring are implemented; extracted facts still need user confirmation.
 
 See the [intake integration guide](landing/INTAKE_INTEGRATION.md) for the API and storage details, and [content sources](landing/CONTENT_SOURCES.md) for the sample conversations.
