@@ -22,7 +22,7 @@
 </div>
 <p class="lead">Facing a shutoff or an urgent bill?<br>Discover your rights, find available relief,<br class="mobile-break"> and get help taking the next step.</p>
 <button class="button intake-trigger" type="button" data-open-intake aria-haspopup="dialog" aria-controls="intake-dialog">Start with a conversation <svg class="icon button-icon" aria-hidden="true" focusable="false"><use href="#icon-north_east"/></svg></button>
-<p class="caption">Explore a guided preview. No sign-up needed.</p>
+<p class="caption">No sign-up needed. The AI assistant is coming soon.</p>
 <div class="hero-art">
 <div class="art-tilt"><img src="assets/moretime-hero.png" alt="A paper bill curling through a blue conversation bubble, surrounded by playful colorful shapes" width="1536" height="1024" fetchpriority="high"></div>
 <div class="floating chat-blue">they’re cutting off my power.</div>
@@ -55,12 +55,12 @@
 <section class="how" id="how"><div class="how-title"><p class="eyebrow">THE IDEA BEHIND MORETIME</p><h2>A bill is paperwork.<br><span>You’re a person.</span></h2><p>MoreTime is being built to uncover protections and assistance you may qualify for, starting with your notice, location, and circumstances.</p></div><div class="how-rows"><article><span class="number">01</span><div><h3>Start with the notice.</h3><p>A shutoff warning, an overdue bill, or a disputed charge. Identify the sender, service, deadlines, and what the notice actually says.</p></div></article><article><span class="number">02</span><div><h3>Find the rules that matter.</h3><p>Check local utility protections, assistance programs, and provider rules against your situation. See the source behind each option.</p></div></article><article><span class="number">03</span><div><h3>Turn an option into action.</h3><p>Prepare a protection request, a dispute, or an assistance application. Track replies and deadlines until the outcome is confirmed.</p></div></article></div></section>
 <section class="closing"><div class="closing-shape" aria-hidden="true"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-north_east"/></svg></div><div><h2>You don’t need all the answers.<br>Just somewhere to start.</h2><a class="button" href="#try">Find your first step <svg class="icon button-icon" aria-hidden="true" focusable="false"><use href="#icon-north_east"/></svg></a></div></section>
 </main>
-<footer><a class="wordmark" href="#">MoreTime<span class="blue">.</span></a><p>In development. The live iMessage service is not available yet.<br>Protections depend on location, provider, and eligibility; outcomes aren’t guaranteed.</p><a href="#try">Explore the demo <svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-north_east"/></svg></a></footer>
+<footer><a class="wordmark" href="#">MoreTime<span class="blue">.</span></a><p>In development. The bill-resolution assistant is not available yet.<br>Protections depend on location, provider, and eligibility; outcomes aren’t guaranteed.</p><a href="#try">Explore the demo <svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-north_east"/></svg></a></footer>
 <dialog class="intake-dialog" id="intake-dialog" aria-labelledby="intake-title" aria-describedby="intake-description">
   <div class="intake-topbar">
     <span class="intake-brand"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>MoreTime</span>
-    <span class="intake-step" id="intake-step">1 of 2 · Your details</span>
-    <button class="intake-close" type="button" aria-label="Close and clear your details" data-close-intake><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    <span class="intake-step" id="intake-step">1 of 3 · Your details</span>
+    <button class="intake-close" type="button" aria-label="Close this window" data-close-intake><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
   </div>
   <div class="intake-body">
     <h2 id="intake-title" tabindex="-1">Let’s start with your bill.</h2>
@@ -115,7 +115,7 @@
         </div>
       </div>
       <div class="intake-actions">
-        <p class="intake-preview-note">Preview only. Nothing is uploaded or sent.<br>Closing this window clears your details.</p>
+        <p class="intake-preview-note">Review before sending.<br>Nothing is sent until you confirm.</p>
         <button class="button intake-primary" type="submit">Review details <svg class="icon" aria-hidden="true"><use href="#icon-arrow_forward"/></svg></button>
       </div>
     </form>
@@ -126,15 +126,33 @@
         <div><dt>Phone number</dt><dd id="intake-review-phone"></dd></div>
         <div><dt id="intake-review-location-label">ZIP code</dt><dd id="intake-review-location"></dd></div>
       </dl>
-      <div class="intake-connection-note"><strong>The conversation is coming soon.</strong><p id="intake-connection-description">Messaging isn’t connected yet, so your details haven’t been sent. You can edit them here; closing this window clears them.</p></div>
+      <div class="intake-connection-note"><strong>Continue in Messages.</strong><p id="intake-connection-description">We’ll save these details and send a connection message to your number. Reply with the code to connect. The AI assistant is still in development.</p></div>
+      <label class="intake-consent" for="intake-consent"><input id="intake-consent" type="checkbox">I agree to receive a MoreTime connection message at this number.</label>
+      <p class="intake-error" id="intake-submit-error" role="alert" hidden></p>
       <div class="intake-review-actions">
         <button class="intake-secondary" type="button" id="intake-edit">Edit details</button>
-        <button class="button intake-primary" type="button" disabled aria-describedby="intake-connection-description">Continue by message <svg class="icon" aria-hidden="true"><use href="#icon-arrow_forward"/></svg></button>
+        <button class="button intake-primary" id="intake-send" type="button" disabled aria-describedby="intake-connection-description"><span class="intake-send-label">Send &amp; connect</span><svg class="icon" aria-hidden="true"><use href="#icon-arrow_forward"/></svg></button>
+      </div>
+    </section>
+    <section id="intake-connect" aria-label="Connect in Messages" hidden>
+      <div class="intake-connection-note"><strong id="intake-connect-heading">Your details have been received.</strong><p id="intake-connect-description"></p></div>
+      <div id="intake-code-panel">
+        <p class="intake-code-instructions">Reply to the MoreTime message with:</p>
+        <div class="intake-code-row"><code id="intake-code"></code><button class="intake-secondary" id="intake-copy-code" type="button">Copy</button></div>
+        <p class="intake-hint" id="intake-expiry"></p>
+      </div>
+      <p class="intake-connection-state" id="intake-connection-state" role="status" aria-live="polite">Waiting for your reply in Messages…</p>
+      <p class="intake-error" id="intake-poll-error" role="alert" hidden></p>
+      <div class="intake-review-actions">
+        <button class="intake-secondary" id="intake-check-status" type="button" hidden>Check again</button>
+        <button class="intake-secondary" id="intake-new-code" type="button" hidden>Send a new code</button>
+        <button class="button intake-primary" type="button" data-close-intake>Done</button>
       </div>
     </section>
     <p class="sr-only" id="intake-status" role="status" aria-live="polite"></p>
   </div>
 </dialog>
 <script src="app.js"></script>
+<script src="intake-api.js"></script>
 <script src="intake.js"></script>
 </body></html>

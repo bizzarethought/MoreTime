@@ -5,17 +5,30 @@ Pitch: **Text us the bill or shutoff notice. We help you discover protections, f
 
 ## Current status
 
-MoreTime is in the planning stage for a 24-hour hackathon. The repository includes a responsive landing page with original 3D artwork, animated chat bubbles, and a scripted interactive preview. The backend, messaging integration, datasets, and model training have not been added yet. The architecture and features below describe the intended build.
+MoreTime is a hackathon prototype with a responsive landing page, scripted conversation previews, and a Node/TypeScript backend using Photon for iMessage. Visitors can submit a bill and/or text, phone number, and ZIP code or state without creating an account. The backend saves the intake and sends a verification message; replying with the code links the details to that conversation. Live delivery requires configured Photon credentials and an eligible recipient. The resolution agent, Gemini integration, document analysis, datasets, and model training are still future work.
 
 ## Getting started
 
-The landing page uses plain HTML, CSS, and JavaScript with no dependencies. Open `landing/dist/index.html` in a browser, or serve it from the repository directory:
+The landing page uses plain HTML, CSS, and JavaScript with no dependencies. Serve it from the repository directory:
 
 ```sh
 python3 -m http.server 8000 --directory landing/dist
 ```
 
-Visit http://localhost:8000. Choose one of three fictional situations and move through three stages: share details, explore a relevant option, and get a call script or written request. Earlier messages remain in the conversation, and finished drafts can be copied. “Start with a conversation” opens an intake preview for a bill attachment and/or text, a U.S. phone number, and a ZIP code (or state). It validates the fields and shows a review; files and details stay in the current page and are cleared when the popup closes. Nothing is uploaded, saved, or sent, and the messaging handoff is disabled until the separate integration is ready. Animation respects reduced-motion preferences and can also be paused in the navigation.
+Visit http://localhost:8000. “Start with a conversation” opens the intake form. Nothing is uploaded until the visitor reviews their details, agrees to receive a connection message, and chooses **Send & connect**. The next screen shows the code to reply with in Messages and checks for confirmation. Closing clears the browser form; confirmed intake details remain saved on the server for the future agent. Animation respects reduced-motion preferences and can also be paused in the navigation.
+
+For intake submission, run the backend in another terminal with Node 24+:
+
+```sh
+npm run setup
+npm run typecheck
+npm test
+npm start
+```
+
+Configure `PROJECT_ID` and `PROJECT_SECRET` locally in `more-time/.env` or the process environment first. If `ALLOWED_ORIGINS` is set, include `http://localhost:8000`. The API defaults to port 8080; guest intake needs no sign-in configuration. See the [intake integration guide](landing/INTAKE_INTEGRATION.md) for setup, the request contract, data retention, and the future agent handoff.
+
+The separate guided preview still uses fictional situations: share details, explore a relevant option, and get a call script or written request. Earlier messages remain in the conversation, and finished drafts can be copied.
 
 In “This bill can’t be right,” select **Attach the sample bill** to add a fictional PDF to the conversation. Open the attachment, confirm its details, and continue to a billing-review draft. The PDF and thumbnail are generated from `landing/sample-bill.json` with `python3 landing/scripts/generate-sample-bill.py`.
 
@@ -28,13 +41,14 @@ Landing page files:
 - `landing/dist/index.html` — content and page structure.
 - `landing/dist/style.css` — responsive layouts and animations.
 - `landing/dist/app.js` — scenario selection, continuation, replay, and motion controls.
+- `landing/dist/intake.js`, `intake.css`, and `intake-api.js` — intake form, review, upload submission, and connection status.
 - `landing/dist/assets/moretime-hero.png` — original generated illustration; see [asset notes](landing/ASSETS.md) for the generation prompt.
 
 The page was visually reviewed in Chrome at desktop and 390-pixel mobile widths. Browser checks covered image loading, mobile overflow, all three conversation flows, replay, rapid scenario switching, keyboard focus, and reduced motion.
 
 Sites hosting is configured in `landing/.openai/hosting.json`. Publication is pending; the Sites publishing helpers require Node.js, which is not installed in the current environment.
 
-For backend work, start with the MVP scope, build order, and open decisions below. Backend setup instructions will be added when implemented.
+For backend details, see [more-time/README.md](more-time/README.md). The scope and build order below describe the remaining resolution-agent work.
 
 To review local changes from the repository directory:
 
@@ -67,10 +81,10 @@ Initial scope is helping the user understand applicable utility protections and 
 
 ## Interface and architecture
 
-**iMessage → messaging webhook → Python backend → models and tools → case database → reply**
+**Landing-page intake → Node/TypeScript API + SQLite → Photon iMessage verification → future resolution agent → reply**
 
-- **Messaging:** Evaluate Photon first because it was suggested for the project. Verify current API access, incoming attachments, outgoing replies, and webhook behavior before committing. Provider suitability is not yet established.
-- **Backend:** A small Python service handles incoming events and coordinates processing. Handle duplicate events so repeated delivery does not create duplicate case updates.
+- **Messaging:** Photon Spectrum supplies the existing iMessage transport and incoming message loop. A sender must reply with their connection code before the intake is associated with that conversation. The loop deduplicates incoming messages; iMessage attachment downloading is still future work.
+- **Backend:** A Node 24+ TypeScript service validates guest intake, stores details and uploaded bills in SQLite, and exposes connection status. Separate signed-in account endpoints retain their JWT authentication.
 - **Document processing:** A vision-capable model or OCR plus extraction produces structured facts. Preserve document evidence and distinguish missing information from inferred information.
 - **Resolution agent:** An LLM asks questions, retrieves evidence for the correct jurisdiction and provider, explains protections and relief, and drafts requests or disputes.
 - **Case logic:** Code validates dates, calculates payments, and controls state transitions. Proposed changes are distinct from confirmed agreements.

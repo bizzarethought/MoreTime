@@ -5,6 +5,8 @@ import { imessage } from "spectrum-ts/providers/imessage";
 import { resolve } from "node:path";
 import { authenticationFromEnvironment } from "./auth.ts";
 import { createApi } from "./api.ts";
+import { createIntakeApi } from "./intake-api.ts";
+import { IntakeStore } from "./intake-store.ts";
 import { createHttpServer } from "./server.ts";
 import { LinkStore } from "./store.ts";
 import { photonTransport, runMessageLoop } from "./photon.ts";
@@ -22,6 +24,7 @@ if (!projectId?.trim() || !projectSecret?.trim()) {
 
 let app: SpectrumInstance | undefined;
 let store: LinkStore | undefined;
+let intakes: IntakeStore | undefined;
 let server: Server | undefined;
 let cleanup: ReturnType<typeof setInterval> | undefined;
 
@@ -34,20 +37,26 @@ try {
     projectSecret,
     providers: [imessage.config()],
   });
-  store = new LinkStore(resolve(process.env.DATABASE_PATH ?? "data/moretime.sqlite"));
-  server = createHttpServer(createApi({
-    store, authenticate, transport: photonTransport(app),
-    allowedOrigins: (process.env.ALLOWED_ORIGINS ?? "http://localhost:3000").split(",").map((origin) => origin.trim()).filter(Boolean),
+  const databasePath = resolve(process.env.DATABASE_PATH ?? "data/moretime.sqlite");
+  store = new LinkStore(databasePath);
+  intakes = new IntakeStore(databasePath);
+  intakes.prune();
+  const transport = photonTransport(app);
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "http://localhost:3000,http://localhost:8000,http://127.0.0.1:8000")
+    .split(",").map((origin) => origin.trim()).filter(Boolean);
+  server = createHttpServer(createIntakeApi({
+    store, intakes, transport, allowedOrigins,
+    fallback: createApi({ store, authenticate, transport, allowedOrigins }),
   }));
   await new Promise<void>((done, reject) => {
     server!.once("error", reject);
     server!.listen(port, process.env.HOST ?? "127.0.0.1", done);
   });
-  console.log(`MoreTime account-linking API is listening on port ${port}. Ctrl+C stops it.`);
+  console.log(`MoreTime intake and account-linking API is listening on port ${port}. Ctrl+C stops it.`);
   if (!process.env.AUTH_JWKS_URL || !process.env.AUTH_ISSUER || !process.env.AUTH_AUDIENCE) {
     console.log("Configure AUTH_JWKS_URL, AUTH_ISSUER, and AUTH_AUDIENCE before connecting website accounts.");
   }
-  cleanup = setInterval(() => store!.prune(), 60_000);
+  cleanup = setInterval(() => { store!.prune(); intakes!.prune(); }, 60_000);
   cleanup.unref();
   await runMessageLoop(app, store);
 } catch {
@@ -62,5 +71,6 @@ try {
   server?.close();
   try { await app?.stop(); }
   catch { console.error("Could not cleanly close the Photon connection."); }
+  intakes?.close();
   store?.close();
 }

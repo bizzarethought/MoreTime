@@ -4,5 +4,6 @@ node_modules/
 !.env.example
 data/
 dist/
+!landing/dist/
 *.log
 .DS_Store

@@ -1,5 +1,9 @@
 # Connecting the MoreTime landing page to iMessage
 
+The landing page now uses the [guest intake API](../../landing/INTAKE_INTEGRATION.md),
+which accepts bill details and uploads without sign-in. This document describes
+the separate signed-in account API; its JWT requirements are unchanged.
+
 The backend and Photon bridge run together. Website authentication is configurable
 because the landing page's auth provider has not been chosen yet. The connection
 API refuses account operations with `503 auth_not_configured` until configured;
@@ -7,7 +11,7 @@ it never trusts a browser-supplied user ID or an unverified JWT.
 
 ## Backend setup
 
-Use Node 24 or newer. From `/Users/rishikeshsrivatsan/MoreTime`:
+Use Node 24 or newer. From the repository root:
 
 ```sh
 npm run setup

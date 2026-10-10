@@ -1,16 +1,20 @@
 import { createServer } from "node:http";
+import { MAX_INTAKE_BYTES } from "./intake-api.ts";
 
 // The API uses Web Request/Response objects so its boundary is testable without
 // opening a port or connecting to Photon.
 export function createHttpServer(handle: (request: Request) => Promise<Response>) {
   return createServer(async (incoming, outgoing) => {
     try {
+      const method = incoming.method ?? "GET";
+      const path = incoming.url ?? "/";
+      const limit = method === "POST" && new URL(`http://localhost${path}`).pathname === "/api/intake" ? MAX_INTAKE_BYTES : 8192;
       let size = 0;
       const chunks: Buffer[] = [];
       const body = await new Promise<Buffer>((resolve, reject) => {
         incoming.on("data", (chunk: Buffer) => {
           size += chunk.length;
-          if (size > 8192) {
+          if (size > limit) {
             chunks.length = 0;
             reject(new Error("body_too_large"));
           } else {
@@ -25,8 +29,6 @@ export function createHttpServer(handle: (request: Request) => Promise<Response>
       for (const [name, value] of Object.entries(incoming.headers)) {
         if (value !== undefined) headers.set(name, Array.isArray(value) ? value.join(", ") : value);
       }
-      const method = incoming.method ?? "GET";
-      const path = incoming.url ?? "/";
       // Fixed internal origin: never use a caller's Host header for routing.
       const request = new Request(`http://localhost${path}`, {
         method, headers,

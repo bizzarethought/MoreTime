@@ -1,0 +1,69 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 2271 >>
+stream
+0.97 0.98 1 rg 0 0 595 842 re f
+1 1 1 rg 30 30 535 782 re f
+0.63 0.31 0.08 rg BT /F2 10 Tf 1 0 0 1 55 770 Tm (FICTIONAL SAMPLE - NOT PAYABLE) Tj ET
+0.10 0.30 0.70 rg BT /F2 27 Tf 1 0 0 1 55 720 Tm (Example Electric) Tj ET
+0.13 0.16 0.21 rg BT /F1 14 Tf 1 0 0 1 55 693 Tm (Monthly electricity bill) Tj ET
+0.13 0.16 0.21 rg BT /F2 38 Tf 1 0 0 1 55 627 Tm ($286.00) Tj ET
+0.13 0.16 0.21 rg BT /F1 13 Tf 1 0 0 1 55 600 Tm (Due October 20, 2026) Tj ET
+0.40 0.43 0.49 rg BT /F1 11 Tf 1 0 0 1 55 546 Tm (Account) Tj ET
+0.13 0.16 0.21 rg BT /F2 11 Tf 1 0 0 1 205 546 Tm (DEMO-0001) Tj ET
+0.88 0.91 0.95 RG 0.5 w 55 534 m 540 534 l S
+0.40 0.43 0.49 rg BT /F1 11 Tf 1 0 0 1 55 507 Tm (Service) Tj ET
+0.13 0.16 0.21 rg BT /F2 11 Tf 1 0 0 1 205 507 Tm (Electricity / New Jersey) Tj ET
+0.88 0.91 0.95 RG 0.5 w 55 495 m 540 495 l S
+0.40 0.43 0.49 rg BT /F1 11 Tf 1 0 0 1 55 468 Tm (Billing period) Tj ET
+0.13 0.16 0.21 rg BT /F2 11 Tf 1 0 0 1 205 468 Tm (September 1 - September 30, 2026) Tj ET
+0.88 0.91 0.95 RG 0.5 w 55 456 m 540 456 l S
+0.40 0.43 0.49 rg BT /F1 11 Tf 1 0 0 1 55 429 Tm (Bill issued) Tj ET
+0.13 0.16 0.21 rg BT /F2 11 Tf 1 0 0 1 205 429 Tm (October 1, 2026) Tj ET
+0.88 0.91 0.95 RG 0.5 w 55 417 m 540 417 l S
+0.40 0.43 0.49 rg BT /F1 11 Tf 1 0 0 1 55 390 Tm (Payment due) Tj ET
+0.13 0.16 0.21 rg BT /F2 11 Tf 1 0 0 1 205 390 Tm (October 20, 2026) Tj ET
+0.88 0.91 0.95 RG 0.5 w 55 378 m 540 378 l S
+0.40 0.43 0.49 rg BT /F1 11 Tf 1 0 0 1 55 351 Tm (Current charges) Tj ET
+0.13 0.16 0.21 rg BT /F2 11 Tf 1 0 0 1 205 351 Tm ($286.00) Tj ET
+0.88 0.91 0.95 RG 0.5 w 55 339 m 540 339 l S
+0.40 0.43 0.49 rg BT /F1 11 Tf 1 0 0 1 55 312 Tm (Previous bill) Tj ET
+0.13 0.16 0.21 rg BT /F2 11 Tf 1 0 0 1 205 312 Tm ($143.00) Tj ET
+0.88 0.91 0.95 RG 0.5 w 55 300 m 540 300 l S
+0.40 0.43 0.49 rg BT /F1 11 Tf 1 0 0 1 55 273 Tm (Meter reading) Tj ET
+0.13 0.16 0.21 rg BT /F2 11 Tf 1 0 0 1 205 273 Tm (Estimated) Tj ET
+0.88 0.91 0.95 RG 0.5 w 55 261 m 540 261 l S
+0.13 0.16 0.21 rg BT /F1 11 Tf 1 0 0 1 55 160 Tm (Created for the MoreTime interactive preview.) Tj ET
+0.13 0.16 0.21 rg BT /F1 11 Tf 1 0 0 1 55 140 Tm (Provider, account, and charges are fictional.) Tj ET
+0.13 0.16 0.21 rg BT /F1 11 Tf 1 0 0 1 55 120 Tm (No payment is due. This is not a real utility document.) Tj ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2719
+%%EOF

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595 842">
+<rect width="595" height="842" fill="#fff"/>
+<g font-family="Arial, sans-serif">
+<text x="45" y="55" font-size="13" fill="#a04f15" font-weight="700">FICTIONAL SAMPLE - NOT PAYABLE</text>
+<text x="45" y="115" font-size="32" fill="#1959e8" font-weight="700">Example Electric</text>
+<text x="45" y="145" font-size="17" fill="#283442">Monthly electricity bill</text>
+<text x="45" y="220" font-size="42" fill="#283442" font-weight="700">$286.00</text>
+<text x="45" y="250" font-size="16" fill="#283442">Due October 20, 2026</text>
+<text x="45" y="310" font-size="13" fill="#68727e">Account</text>
+<text x="195" y="310" font-size="13" fill="#283442" font-weight="700">DEMO-0001</text>
+<path d="M45 325H550" stroke="#e1e6ee"/>
+<text x="45" y="352" font-size="13" fill="#68727e">Service</text>
+<text x="195" y="352" font-size="13" fill="#283442" font-weight="700">Electricity / New Jersey</text>
+<path d="M45 367H550" stroke="#e1e6ee"/>
+<text x="45" y="394" font-size="13" fill="#68727e">Billing period</text>
+<text x="195" y="394" font-size="13" fill="#283442" font-weight="700">September 1 - September 30, 2026</text>
+<path d="M45 409H550" stroke="#e1e6ee"/>
+<text x="45" y="436" font-size="13" fill="#68727e">Bill issued</text>
+<text x="195" y="436" font-size="13" fill="#283442" font-weight="700">October 1, 2026</text>
+<path d="M45 451H550" stroke="#e1e6ee"/>
+<text x="45" y="478" font-size="13" fill="#68727e">Payment due</text>
+<text x="195" y="478" font-size="13" fill="#283442" font-weight="700">October 20, 2026</text>
+<path d="M45 493H550" stroke="#e1e6ee"/>
+<text x="45" y="520" font-size="13" fill="#68727e">Current charges</text>
+<text x="195" y="520" font-size="13" fill="#283442" font-weight="700">$286.00</text>
+<path d="M45 535H550" stroke="#e1e6ee"/>
+<text x="45" y="562" font-size="13" fill="#68727e">Previous bill</text>
+<text x="195" y="562" font-size="13" fill="#283442" font-weight="700">$143.00</text>
+<path d="M45 577H550" stroke="#e1e6ee"/>
+<text x="45" y="604" font-size="13" fill="#68727e">Meter reading</text>
+<text x="195" y="604" font-size="13" fill="#283442" font-weight="700">Estimated</text>
+<path d="M45 619H550" stroke="#e1e6ee"/>
+<text x="45" y="720" font-size="13" fill="#283442">Created for the MoreTime interactive preview.</text>
+<text x="45" y="746" font-size="13" fill="#283442">Provider, account, and charges are fictional.</text>
+<text x="45" y="772" font-size="13" fill="#283442">No payment is due.</text>
+</g></svg>
