@@ -1,17 +1,18 @@
 # MoreTime TODO
 
 The Gemini bill-reading and iMessage conversation flow is working. The next stage
-is to give MoreTime the tools and case tracking to pursue a resolution.
+is to help users call their biller or send a request by email.
 
-- [ ] **Integrate email so the agent can contact the billing office itself.**
-  Connect an email service, send case-specific requests, receive replies, and keep
-  each thread linked to the user's bill. Once the user authorizes outreach for the
-  case, let the agent send and follow up within that scope without requiring the
-  user to compose each message. Ask about payment plans, financial assistance,
-  disputed charges, and deadline extensions as appropriate. Track delivery,
-  replies, pending requests, and confirmed outcomes; tell the user what actually
-  happened and what needs their input. Use verified biller contact information
-  from the research work below.
+- [ ] **Offer a prefilled email form if the call doesn’t help or the user prefers email.**
+  Give the user a verified billing-office number and a short call script first.
+  If they report that the call didn’t produce a clear answer or useful next step,
+  or they would rather email, open a simple contact-style form. Prefill the
+  biller’s email address, subject, and message using verified contact information,
+  the bill details, and any call outcome. Let the user review and edit the email,
+  and enter their own email address for replies. Send only when they click Send.
+  Show whether the send succeeded or failed and prevent duplicate submissions.
+  Keep this to one outgoing email; receiving replies, managing threads, and
+  automatic follow-ups are out of scope.
 
 - [ ] **Add internet research for the specific biller and location.**
   Find billing-office phone numbers and email addresses from official sources.
@@ -36,7 +37,7 @@ is to give MoreTime the tools and case tracking to pursue a resolution.
 - [ ] **Make the tone helpful, eager, and focused on resolving the issue.**
   Acknowledge the user's situation briefly, use clear conversational language,
   offer a concrete next step, and take ownership of work the agent can perform.
-  Prefer “I can ask the billing office about a payment plan” once that tool is
+  Prefer “I’ve prepared an email you can edit and send” once that form is
   available. Give concise progress updates and distinguish a proposed action,
   a sent request, and an agreement confirmed by the biller. Avoid repetitive
   disclaimers, generic advice, and promises unsupported by actual actions.
