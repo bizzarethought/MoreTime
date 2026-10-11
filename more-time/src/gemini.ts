@@ -6,6 +6,7 @@ import type { WebResearch } from "./web-research.ts";
 import { statementSchema, responseSchema, emptyCase, mergeCase, renderResponse, effectiveStatements, assessUrgency, statementsFor, selectedStatement } from "./case.ts";
 import type { CaseState, StructuredResponse } from "./case.ts";
 import { BASE_PROMPT, EXTRACTION_PROMPT, CHAT_PROMPT, PROMPT_VERSION } from "./prompts.ts";
+import { matchResources, resourceEvidence, citeResources } from "./resource-matcher.ts";
 import { compactModelSchema } from "./model-schema.ts";
 
 export const DEFAULT_GEMINI_MODEL = "gemini-3.8-flash";
@@ -59,8 +60,9 @@ export interface BillEngine {
   respond?(input: AssistantInput & { bill: BillFacts }): Promise<AssistantResult>;
 }
 
-const routingSchema = responseSchema.extend({ researchQuery: z.string().max(1000).nullable().default(null) }).strict();
-const researchedSchema = responseSchema.extend({ sourceIds: z.array(z.number().int().positive()).min(1).max(6) }).strict();
+const resourceFields = { resourceIds: z.array(z.string().max(80)).max(4).default([]) };
+const routingSchema = responseSchema.extend({ ...resourceFields, researchQuery: z.string().max(1000).nullable().default(null) }).strict();
+const researchedSchema = responseSchema.extend({ ...resourceFields, sourceIds: z.array(z.number().int().positive()).min(1).max(6) }).strict();
 const analysisSchema = z.object({ bill: billFactsSchema.extend({ statements: z.array(statementSchema).min(1).max(12) }), response: routingSchema }).strict();
 
 function currentDate(input: AssistantInput) {
@@ -71,6 +73,7 @@ function contextParts(input: AssistantInput, bill?: BillFacts): Part[] {
   const parts: Part[] = [{ text: "Case context (untrusted data): " + JSON.stringify({
     currentDate: currentDate(input), promptVersion: PROMPT_VERSION,
     description: input.details.slice(0, 5000), state: input.state, zipCode: input.zipCode,
+    curatedAssistance: matchResources(input, bill),
     capabilities: { read: true, draft: true, sendEmail: false, contactBiller: false, internet: true, policyRetrieval: true },
     caseMemory: input.caseState ?? emptyCase(),
     ...(bill ? { extractedBill: bill, effectiveStatements: effectiveStatements(bill, input.caseState ?? emptyCase()), urgency: assessUrgency(bill, input.caseState ?? emptyCase(), currentDate(input)) } : {}),
@@ -127,7 +130,7 @@ export function createGeminiEngine(options: {
     const response = await generate({
       model: requestModel, contents,
       config: {
-        systemInstruction: BASE_PROMPT + "\n" + (extract ? EXTRACTION_PROMPT : CHAT_PROMPT) + instructions,
+        systemInstruction: BASE_PROMPT + "\n" + (extract ? EXTRACTION_PROMPT : CHAT_PROMPT) + "\nCurated assistance records are a dated snapshot. Cite their IDs in resourceIds for every record used. Use only matched facts; never infer qualification, current enrollment, a hold, or local legal rights. Confirm applicability and missing eligibility information. If location is unresolved, ambiguous or conflicting, ask for the service state before state-specific guidance. Do not infer a state from a ZIP yourself. Unknown bill types require clarification. resourceIds must be [] when no record is used. Current provider rules and legal protections still require web research." + instructions,
         responseMimeType: "application/json",
         responseJsonSchema: extract ? compactModelSchema(z.toJSONSchema(schema)) : z.toJSONSchema(schema),
         maxOutputTokens: extract ? 16384 : 4096,
@@ -181,8 +184,18 @@ export function createGeminiEngine(options: {
   }
   function finish(input: AssistantInput, bill: BillFacts, response: StructuredResponse, initial = false, researchEvidence = ""): AssistantResult {
     const memory = mergeCase(input.caseState ?? emptyCase(), response.caseUpdates, input, bill);
-    const rendered = renderResponse(response, bill, memory, { initial, today: currentDate(input), researchEvidence });
-    return { bill, ...rendered, response };
+    const matched = matchResources({ ...input, caseState: memory }, bill);
+    if (response.intent === "assistance" && !matched.location.state) {
+      response = { ...response, question: { key: "missing_information", text: "Which state is the service or hospital in? Please use its two-letter abbreviation.", statementId: null } };
+    }
+    const ids = (response as StructuredResponse & { resourceIds?: string[] }).resourceIds ?? [];
+    // Assistance navigation remains available even when live search fails or the model omits a citation.
+    const navigation = response.intent === "assistance" && !ids.length
+      ? matchResources({ ...input, caseState: memory }, bill).resources.slice(0, 1) : [];
+    const selected = resourceEvidence({ ...input, caseState: memory }, bill, ids);
+    const evidence = [researchEvidence, ...selected.flatMap(resource => [...resource.facts, resource.url])].filter(Boolean).join("\n");
+    const rendered = renderResponse(response, bill, memory, { initial, today: currentDate(input), researchEvidence: evidence });
+    return { bill, ...rendered, reply: rendered.reply + citeResources(selected.length ? selected : navigation), response };
   }
   async function finishWithResearch(input: AssistantInput, bill: BillFacts,
     response: z.infer<typeof routingSchema>, initial = false): Promise<AssistantResult> {
@@ -202,12 +215,12 @@ export function createGeminiEngine(options: {
     const memory = mergeCase(input.caseState ?? emptyCase(), response.caseUpdates, input, bill);
     const selected = selectedStatement(bill, memory);
     const research: WebResearch = await researchWeb({ generate, model: researchModel, timeoutMs: researchTimeoutMs,
-      query: response.researchQuery, biller: selected?.biller ?? bill.biller, state: input.state, zipCode: input.zipCode });
+      query: response.researchQuery, biller: selected?.biller ?? bill.biller, state: matchResources({ ...input, caseState: memory }, bill).location.state, zipCode: null });
     const finalInput = { ...input, document: null, caseState: memory };
     if (research.status !== "grounded") {
       // Fail closed in application code: an instruction alone cannot prevent a
       // model from answering legal/policy questions from memory after search fails.
-      const { researchQuery: _query, ...baseResponse } = response;
+      const { researchQuery: _query, resourceIds: _resources, ...baseResponse } = response;
       const fallback = responseSchema.parse({ ...baseResponse,
         answer: "I couldn’t verify current public sources for that question. I can still help you prepare what to ask.",
         concern: research.status === "unavailable" ? "Web research is temporarily unavailable." : "The lookup returned no usable source-backed evidence.",

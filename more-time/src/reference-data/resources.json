@@ -1,0 +1,81 @@
+[
+  {
+    "id": "nj-energy",
+    "state": "NJ",
+    "billTypes": [
+      "utility"
+    ],
+    "title": "New Jersey utility assistance",
+    "url": "https://www.nj.gov/bpu/assistance/programs/",
+    "facts": [
+      "New Jersey lists LIHEAP and Universal Service Fund assistance for energy bills."
+    ],
+    "applicability": "Energy bills; not every type of utility bill is covered.",
+    "missing": [
+      "energy service type",
+      "household income",
+      "household size"
+    ],
+    "verifiedAt": "2026-10-11",
+    "effectiveDate": null
+  },
+  {
+    "id": "nj-charity-care",
+    "state": "NJ",
+    "billTypes": [
+      "medical"
+    ],
+    "title": "New Jersey Charity Care",
+    "url": "https://www.nj.gov/health/hcf/charity-care/overview/",
+    "facts": [
+      "New Jersey Charity Care offers free or reduced-charge eligible acute-care hospital services subject to income, asset and other requirements.",
+      "Apply through the hospital where services were provided; separate physician and other charges may not be covered."
+    ],
+    "applicability": "Confirm the hospital and service location; residence alone does not establish coverage.",
+    "missing": [
+      "hospital and service location",
+      "household income and assets",
+      "insurance and other coverage"
+    ],
+    "verifiedAt": "2026-10-11",
+    "effectiveDate": null
+  },
+  {
+    "id": "us-hospital-assistance",
+    "state": null,
+    "billTypes": [
+      "medical"
+    ],
+    "title": "IRS hospital financial assistance policies",
+    "url": "https://www.irs.gov/charities-non-profits/financial-assistance-policies-faps",
+    "facts": [
+      "Tax-exempt hospital organizations must maintain a written financial assistance policy."
+    ],
+    "applicability": "Tax-exempt hospitals; verify the actual provider and its policy.",
+    "missing": [
+      "provider identity",
+      "hospital financial assistance policy"
+    ],
+    "verifiedAt": "2026-10-11",
+    "effectiveDate": null
+  },
+  {
+    "id": "us-energy-directory",
+    "state": null,
+    "billTypes": [
+      "utility"
+    ],
+    "title": "Federal LIHEAP assistance finder",
+    "url": "https://liheapch.acf.gov/search-tool/",
+    "facts": [
+      "The federal LIHEAP Clearinghouse provides a tool to find local energy assistance offices."
+    ],
+    "applicability": "Energy assistance navigation only; confirm current enrollment and local requirements.",
+    "missing": [
+      "energy service type",
+      "state program requirements"
+    ],
+    "verifiedAt": "2026-10-11",
+    "effectiveDate": null
+  }
+]

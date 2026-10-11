@@ -51,3 +51,5 @@ The assistant explains bills, remembers case facts, drafts requests and research
 
 Approved weekly iMessage check-ins and optional read-only Gmail payment-notice alerts are implemented. See [setup and controls](docs/follow-ups-and-email.md). Existing users reopen settings through **Manage connection** and verify a `MANAGE` code. Reply STOP to disconnect and remove the saved case and both integrations from the active database. See [the demo walkthrough](docs/demo.md).
 Run `npm run dev` for automatic restart after source edits.
+
+ZIP-based curated official assistance resources now augment generation. See [coverage, geography and maintenance](docs/assistance-resources.md).
