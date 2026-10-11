@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { Content } from "spectrum-ts";
 import { createMessageHandler } from "../src/assistant.ts";
+import { CallCaseStore } from "../src/call-case.ts";
 import { ConversationStore } from "../src/conversation-store.ts";
 import { IntakeStore, intakeIdentity } from "../src/intake-store.ts";
 import { LinkStore } from "../src/store.ts";
@@ -25,14 +26,16 @@ function harness(t: TestContext, engine?: BillEngine) {
   const path = join(dir, "state.sqlite");
   const store = new LinkStore(path), intakes = new IntakeStore(path), conversations = new ConversationStore(path);
   t.after(() => { conversations.close(); intakes.close(); store.close(); rmSync(dir, { recursive: true, force: true }); });
+  const callStore = new CallCaseStore(path);
+  t.after(() => callStore.close());
   const identity = intakeIdentity();
   const sender = "+12015550123";
   const challenge = store.issue(identity.userId, sender);
   intakes.save(identity, challenge.expiresAt, { address: sender, details: "My bill is overdue", zipCode: "07102", state: null,
     bill: { name: "bill.pdf", type: "application/pdf", bytes: Buffer.from("%PDF-1.4\nFictional bill") } });
-  const handle = createMessageHandler({ store, intakes, conversations, engine });
+  const handle = createMessageHandler({ store, intakes, conversations, engine, calls: callStore });
   const message = (id: string, text: string, address = sender) => ({ id, text, sender: address, spaceId: "dm:test", line: "shared" });
-  return { path, store, intakes, conversations, identity, sender, handle, message, code: `CONNECT ${challenge.code}` };
+  return { path, store, intakes, conversations, callStore, identity, sender, handle, message, code: `CONNECT ${challenge.code}` };
 }
 
 test("phone verification triggers bill analysis, then follow-ups use persisted context and deduplicate", async (t) => {
@@ -203,4 +206,36 @@ test("the iMessage handler persists structured responses, forwards case memory a
   assert.deepEqual(h.conversations.session(h.identity.userId)?.caseState, state);
   await h.handle(h.message("structured-stop", "STOP"));
   assert.equal(h.conversations.session(h.identity.userId), undefined);
+});
+
+
+test("call commands stay outside Gemini and pending corrections remove stale agreement context", async t => {
+  const inputs: AssistantInput[]=[];
+  const h=harness(t,{async analyze(){return {bill,reply:"Read bill"};},async answer(input){inputs.push(input);return "Next step";}});
+  await h.handle(h.message("call-connect",h.code));
+  await h.handle(h.message("call-notes","CALLED $30 monthly, written confirmation tomorrow"));
+  await h.handle(h.message("call-confirm","CONFIRM CALL"));
+  await h.handle(h.message("call-remind","REMIND IN 2 MINUTES"));
+  assert.equal(inputs.length,0);
+  await h.handle(h.message("call-question","What should I do next?"));
+  assert.ok(inputs[0]!.caseState?.facts.some(f=>f.field==="reportedAgreement"&&f.value==="$30 monthly, written confirmation tomorrow"));
+  await h.handle(h.message("call-correction","CALLED Actually $40 monthly"));
+  await h.handle(h.message("call-question-2","What should I do next?"));
+  assert.ok(!inputs[1]!.caseState?.facts.some(f=>f.field==="reportedAgreement"));
+  assert.equal(h.conversations.session(h.identity.userId)?.bill.amountDue,180);
+  await h.handle(h.message("call-stop","STOP"));
+  assert.equal(h.callStore.current(h.identity.userId),undefined);
+});
+
+test("call commands use sender verification and work without a configured engine",async t=>{
+  const h=harness(t);
+  await h.handle(h.message("connect-no-engine",h.code));
+  h.conversations.complete({userId:h.identity.userId,messageId:"saved",question:"bill",reply:"saved",bill,document:null});
+  assert.match((await h.handle(h.message("plan-no-engine","CALL"))).reply,/Call plan/);
+  assert.ok(!(await h.handle(h.message("wrong-call","CALL STATUS","+12015550999"))).reply.includes("Fictional Electric"));
+  await h.handle(h.message("pause-call-notes","CALLED Terms tomorrow"));
+  await h.handle(h.message("pause-call-confirm","CONFIRM CALL"));
+  await h.handle(h.message("pause-call-reminder","REMIND IN 1 MINUTE"));
+  await h.handle(h.message("pause-call","FOLLOWUPS OFF"));
+  assert.match((await h.handle(h.message("pause-call-status","CALL STATUS"))).reply,/No call follow-up/);
 });

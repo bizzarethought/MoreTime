@@ -5,6 +5,7 @@ import { LinkStore } from "./store.ts";
 import type { IncomingMessage } from "./store.ts";
 import type { FollowUpStore } from "./follow-ups.ts";
 import type { EmailStore } from "./email.ts";
+import type { CallCaseStore } from "./call-case.ts";
 import { assistantErrorCode } from "./assistant-error.ts";
 import { caseForNewDocument, emptyCase } from "./case.ts";
 
@@ -15,6 +16,7 @@ export function createMessageHandler(options: {
   engine?: BillEngine;
   followUps?: FollowUpStore;
   emails?: EmailStore;
+  calls?: CallCaseStore;
 }) {
   // Serialize each account, including duplicate deliveries during an LLM request.
   const pending = new Map<string, Promise<unknown>>();
@@ -24,6 +26,7 @@ export function createMessageHandler(options: {
     let connection = options.store.connectionForSender(message.sender);
     if (/^(STOP|UNSUBSCRIBE)$/i.test(message.text?.trim() ?? "")) {
       if (connection) {
+        options.calls?.remove(connection.user_id);
         options.followUps?.remove(connection.user_id);
         options.emails?.remove(connection.user_id);
         options.conversations.remove(connection.user_id);
@@ -53,8 +56,9 @@ export function createMessageHandler(options: {
     const userId = connection.user_id;
     const command=message.text?.trim().toUpperCase()??"";
     if(command==="FOLLOWUPS OFF"||command==="RESOLVED") {
+      options.calls?.pause(userId);
       options.followUps?.pause(userId);
-      return options.store.cacheReply(message.id,"Your proactive check-ins and email notice alerts are paused. You can still message me whenever you need help.",userId);
+      return options.store.cacheReply(message.id,"Your proactive check-ins, call follow-ups, and email notice alerts are paused. You can still message me whenever you need help.",userId);
     }
     if(command==="EMAIL OFF") {
       options.emails?.remove(userId);
@@ -63,10 +67,17 @@ export function createMessageHandler(options: {
     const snooze=/^SNOOZE (\d{1,2})$/.exec(command);
     if(snooze) {
       const days=Number(snooze[1]);
+      if(cached)return cached;
+      const callSnoozed=days>=1&&days<=30&&options.calls?.snooze(userId,days);
       const done=days>=1&&days<=30&&options.followUps?.snooze(userId,days);
+      if(callSnoozed)return options.store.cacheReply(message.id,`Your call follow-up is moved out ${days} days.${done?" Recurring check-ins and Gmail alerts are also snoozed.":""} Reply REMIND OFF to cancel the call follow-up.`,userId);
       return options.store.cacheReply(message.id,done?`I’ll wait ${days} days before the next bill check-in. Email notice alerts are also paused until then. Reply FOLLOWUPS OFF to end check-ins.`:"Use SNOOZE 1 through SNOOZE 30 while approved check-ins are enabled.",userId);
     }
 
+    if(options.calls&&!message.attachment) {
+      const callReply=options.calls.command(userId,message.id,message.text??"",options.conversations.session(userId));
+      if(callReply)return options.store.cacheReply(message.id,callReply,userId);
+    }
     const savedReply = options.conversations.reply(message.id, userId);
     if (savedReply) return options.store.cacheReply(message.id, savedReply, userId);
     if (cached && !connectionReply) return cached;
@@ -81,14 +92,22 @@ export function createMessageHandler(options: {
       stage = "load_attachment";
       const incomingDocument = message.attachment ? await loadDocument?.() : null;
       if (message.attachment && !incomingDocument) return options.store.cacheReply(message.id, "Please send one PDF or supported bill image at a time, up to 10 MB. This attachment has not been analyzed.");
+      if(incomingDocument)options.calls?.remove(userId);
       const document = incomingDocument ?? session?.document ?? intake?.bill ?? null;
       const question = connectionReply
         ? "Help me understand the bill I submitted. Confirm the important details and ask what you need to help me next."
         : message.text?.trim() || "Help me understand this bill and confirm the important details.";
+      const call=options.calls?.current(userId);
+      const savedState=incomingDocument?caseForNewDocument(session?.caseState??emptyCase()):session?.caseState;
+      const baseState=call&&savedState?{...savedState,facts:savedState.facts.filter(fact=>!(fact.field==="reportedAgreement"&&fact.statementId===call.statement_id))}:savedState;
+      const withCall=call?.confirmed&&call.notes&&baseState?{...baseState,facts:[
+        ...baseState.facts.filter(fact=>!(fact.field==="reportedAgreement"&&fact.statementId===call.statement_id)),
+        {field:"reportedAgreement" as const,value:call.notes.slice(0,500),quote:call.notes.slice(0,500),source:"user_message" as const,statementId:call.statement_id},
+      ]}:baseState;
       const input = {
         details: incomingDocument ? "" : session?.details ?? intake?.details ?? "", state: intake?.state ?? null, zipCode: intake?.zipCode ?? null,
         document, history: options.conversations.history(userId), question,
-        caseState: incomingDocument ? caseForNewDocument(session?.caseState ?? emptyCase()) : session?.caseState,
+        caseState: withCall,
       };
       stage = !session || incomingDocument ? "analyze_bill" : "answer_question";
       const analysis = !session || incomingDocument

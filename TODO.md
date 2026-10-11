@@ -1,5 +1,10 @@
 # MoreTime TODO
 
+- [x] **Add call follow-through in iMessage.**
+  CALL prepares a script; CALLED captures the outcome; CONFIRM CALL records the
+  user-reported terms; REMIND IN schedules one approved contextual check-in.
+  CALL STATUS reports delivery state. See `more-time/docs/call-follow-through.md`.
+
 The Gemini bill-reading and iMessage conversation flow is working. The next stage
 is to help users call their biller or send a request by email.
 
@@ -10,10 +15,10 @@ is to help users call their biller or send a request by email.
   active. Google OAuth credentials must be configured before Gmail is usable.
   See `more-time/docs/follow-ups-and-email.md` for setup and operating limits.
 
-- [ ] **Add case-specific, deadline-aware follow-ups.**
-  Use confirmed deadlines, planned calls, and expected response dates to offer
-  relevant schedules. The current worker sends a general case check-in on the
-  schedule approved by the user.
+- [ ] **Add automatically inferred deadline-aware follow-ups.**
+  Explicit one-time call reminders are implemented. Use confirmed deadlines and expected response dates to offer
+  relevant schedules. Recurring check-ins use the approved general schedule; call reminders
+  use the saved call report and an explicitly approved relative time.
 
 - [ ] **Offer a prefilled email form if the call doesn’t help or the user prefers email.**
   Give the user a verified billing-office number and a short call script first.
@@ -24,7 +29,7 @@ is to help users call their biller or send a request by email.
   and enter their own email address for replies. Send only when they click Send.
   Show whether the send succeeded or failed and prevent duplicate submissions.
   Keep this to one outgoing email; receiving replies, managing threads, and
-  automatic follow-ups are out of scope.
+  automatic follow-ups to billers are out of scope.
 
 - [x] **Add public internet research for biller contacts and local questions.**
   Gemini Google Search supplies attributed excerpts and source links for contact,

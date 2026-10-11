@@ -128,3 +128,7 @@ phone verification; the guest HTTP token grants status access only. The message
 loop calls `createMessageHandler`, which reads the saved intake only after
 verification, invokes Gemini, and saves bill facts and recent conversation in
 `ConversationStore`. The HTTP status endpoint never returns bill contents or replies.
+
+## Call follow-through after intake
+
+The verified iMessage sender can use [call follow-through](../more-time/docs/call-follow-through.md) after the bill is analyzed. `CALL` prepares a script; `CALLED <notes>` and `CONFIRM CALL` save the user’s account of the outcome; `REMIND IN 2 DAYS` approves one reminder. This is separate from landing-page recurring check-ins and Gmail approval. STOP deletes call records and reminders from the active database.

@@ -53,3 +53,7 @@ Approved weekly iMessage check-ins and optional read-only Gmail payment-notice a
 Run `npm run dev` for automatic restart after source edits.
 
 ZIP-based curated official assistance resources now augment generation. See [coverage, geography and maintenance](docs/assistance-resources.md).
+
+## Call follow-through
+
+A verified sender with a saved bill can use `CALL`, `CALLED <notes>`, `CONFIRM CALL`, `REMIND IN 2 DAYS`, `CALL STATUS`, and `REMIND OFF`. One-time reminders use a separate explicit approval from recurring check-ins and Gmail. Commands run without Gemini after a bill has been analyzed. SQLite retains notes and schedules across restarts. See [call follow-through](docs/call-follow-through.md) for limits and delivery states.

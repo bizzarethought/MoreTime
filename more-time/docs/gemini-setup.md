@@ -229,3 +229,7 @@ node --env-file-if-exists=.env --import tsx src/gemini-combined-check.ts officia
 ```
 
 The combined-check npm script expects an already exported `GEMINI_API_KEY`; the commands above load local runtime configuration without printing credentials. Search quota is project/model dependent; successful routine chat does not prove Search access. In development, 3.8 Flash and 3.5 Flash-Lite Search returned 429, while 2.5 Flash returned grounding metadata. See [combined validation](combined-testing.md) and [demo steps](demo.md).
+
+## Call notes and reminders
+
+[Call follow-through](call-follow-through.md) runs deterministic commands independently of Gemini once a bill is saved. Confirmed notes contribute up to 500 characters of user-reported agreement context to later model requests. Pending corrections replace that context only after confirmation. Notes never replace extracted statement balances or deadlines. STOP deletes the call records and reminders along with the saved case.

@@ -221,3 +221,7 @@ also stores bill documents, extracted facts and conversation turns. See the
 References: [Photon quickstart](https://photon.codes/docs/spectrum-ts/getting-started),
 [iMessage routing](https://photon.codes/docs/spectrum-ts/providers/imessage/connection-and-routing),
 [jose JWT verification](https://github.com/panva/jose).
+
+## Call follow-through after linking
+
+Once the verified iMessage sender has an analyzed bill, [call follow-through](call-follow-through.md) is available through Messages commands. It requires no additional browser endpoint, email connection or account permission. `REMIND IN` explicitly approves one contextual reminder. STOP removes stored call notes and reminders as well as the existing case.

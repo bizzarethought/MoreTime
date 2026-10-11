@@ -142,3 +142,7 @@ To tune this further, change the versioned prompt/examples, rerun the fictional
 evaluation, inspect the wording, then try consented real-world samples. Compare
 latency and usefulness when changing models. Weight fine-tuning can be evaluated
 later if the selected model supports it and the examples justify it.
+
+## Confirmed call context
+
+[Call follow-through](call-follow-through.md) persists a user-confirmed call report separately from statement facts. Later model requests receive up to 500 characters as a `reportedAgreement` fact sourced from `user_message` and scoped to the selected statement. Correcting the report removes the earlier report from model input while confirmation is pending. These notes do not independently verify an agreement or overwrite bill amounts and deadlines. Commands and reminder delivery run outside the model.

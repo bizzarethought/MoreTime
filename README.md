@@ -95,7 +95,7 @@ To look at the page and sample conversations without connecting Photon, just run
 
 Frontend files are in `landing/dist`, backend code is in `more-time/src`, and tests are in `more-time/test`. Python serves the static page locally and generates the sample bill assets.
 
-SQLite creates `more-time/data/moretime.sqlite` when the backend starts. It stores intake details, uploaded bills, extracted facts, and conversation history. There’s no separate database service to set up; deployment needs persistent storage for that file.
+SQLite creates `more-time/data/moretime.sqlite` when the backend starts. It stores intake details, uploaded bills, extracted facts, conversation history, call notes, and approved reminder schedules. There’s no separate database service to set up; deployment needs persistent storage for that file.
 
 Run the backend checks:
 
@@ -117,6 +117,10 @@ case memory, tone, output rules and the fictional `npm run gemini:eval` benchmar
 
 ## Next
 
-The [TODO list](TODO.md) tracks an editable email-send form, deadline-aware check-ins, durable research evidence storage, and broader model evaluation. Structured replies, persistent case memory, public web research, approved check-ins and optional Gmail notice monitoring are implemented; extracted facts still need user confirmation.
+The [TODO list](TODO.md) tracks an editable email-send form, automatically inferred deadline check-ins, durable research evidence storage, and broader model evaluation. Structured replies, persistent case memory, public web research, approved check-ins, call follow-through and optional Gmail notice monitoring are implemented; extracted facts still need user confirmation.
 
 See the [intake integration guide](landing/INTAKE_INTEGRATION.md) for the API and storage details, and [content sources](landing/CONTENT_SOURCES.md) for the sample conversations.
+
+## Call follow-through
+
+In the connected iMessage chat, reply `CALL` for a bill-specific script. After calling, send `CALLED` followed by your notes, then `CONFIRM CALL`. Approve one contextual check-in with `REMIND IN 2 DAYS`; use `CALL STATUS` to review it or `REMIND OFF` to cancel. This needs no Gmail connection or recurring check-in subscription. Notes are your account of the call, not independently verified terms. See [the commands and delivery limits](more-time/docs/call-follow-through.md).

@@ -34,4 +34,8 @@ cd ~/MoreTime/more-time
 node --env-file-if-exists=.env --import tsx src/gemini-combined-check.ts official-contact legal-term
 ```
 
-Frame the demo as: understand the bill, remember what the person can afford, find sourced next steps, prepare a request, and check back with permission. Sending requests to billers, negotiation, guaranteed legal protections, Gmail-body analysis and deadline-aware reminders remain outside the implemented flow.
+Frame the demo as: understand the bill, remember what the person can afford, find sourced next steps, prepare a request, and check back with permission. Sending requests to billers, negotiation, guaranteed legal protections, Gmail-body analysis and automatically inferred deadline reminders remain outside the implemented flow.
+
+## Optional call follow-through demo
+
+After analyzing a fictional bill, send `CALL` to show the script. Send `CALLED Billing offered $30 monthly and said they would email the terms tomorrow.` and then `CONFIRM CALL`. Send `REMIND IN 2 MINUTES` and keep the backend running through its next minute polling cycle. The message should refer to the saved call report and ask whether written confirmation arrived. Use `CALL STATUS` to show delivery status, then `REMIND OFF` to cancel any remaining call reminder. Use fictional notes for rehearsal: this does not establish a real biller agreement. See [the feature guide](call-follow-through.md).

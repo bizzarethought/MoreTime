@@ -17,6 +17,7 @@ import { PROMPT_VERSION } from "./prompts.ts";
 import { FollowUpStore, runFollowUps } from "./follow-ups.ts";
 import { EmailStore, emailConfig, gmailNotices } from "./email.ts";
 import { createEngagementApi } from "./engagement-api.ts";
+import { CallCaseStore, runCallReminders } from "./call-case.ts";
 
 const projectId = process.env.PROJECT_ID || process.env.SPECTRUM_PROJECT_ID;
 const projectSecret = process.env.PROJECT_SECRET || process.env.SPECTRUM_PROJECT_SECRET;
@@ -39,6 +40,7 @@ let followUps: FollowUpStore | undefined;
 let emails: EmailStore | undefined;
 let engagementTimer: ReturnType<typeof setInterval> | undefined;
 let engagementRun: Promise<void> | undefined;
+let calls: CallCaseStore | undefined;
 let stopping=false;
 let startupStage="configuration";
 
@@ -64,7 +66,8 @@ try {
   startupStage="follow_up_database";
   followUps=new FollowUpStore(databasePath);
   emails=new EmailStore(databasePath,config?.key);
-  const handleMessage = createMessageHandler({ store, intakes, conversations, engine, followUps, emails });
+  calls=new CallCaseStore(databasePath);
+  const handleMessage = createMessageHandler({ store, intakes, conversations, engine, followUps, emails, calls });
   intakes.prune();
   const transport = photonTransport(app);
   const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "http://localhost:3000,http://localhost:8000,http://127.0.0.1:8000")
@@ -88,15 +91,16 @@ try {
   }
   cleanup = setInterval(() => { store!.prune(); intakes!.prune(); }, 60_000);
   cleanup.unref();
-  const send=async(connection: import("./store.ts").Connection,text:string)=>{
+  const send=async(connection: import("./store.ts").Connection,text:string,permission=()=>followUps!.emailAlertsEnabled(connection.user_id))=>{
     if(stopping||store!.connectionForUser(connection.user_id)?.space_id!==connection.space_id)throw new Error("disconnected");
     const space=await imessage(app!).space.get(connection.space_id, /^\+[1-9]\d{7,14}$/.test(connection.line)?{phone:connection.line}:undefined);
-    if(stopping||!store!.connectionForUser(connection.user_id)||!followUps!.emailAlertsEnabled(connection.user_id))throw new Error("disconnected");
+    if(stopping||!store!.connectionForUser(connection.user_id)||!permission())throw new Error("disconnected");
     const delivered=await space.send(text);
     if(!delivered)throw new Error("unconfirmed_delivery");
   };
   let lastEmailPoll=0;
   const tick=async()=>{
+    await runCallReminders({calls:calls!,links:store!,send:(connection,text,id)=>send(connection,text,()=>calls!.isDeliverable(connection.user_id,id))});
     await runFollowUps({followUps:followUps!,links:store!,send});
     if(!config||Date.now()-lastEmailPoll<10*60_000)return;
     lastEmailPoll=Date.now();
@@ -139,6 +143,7 @@ try {
   server?.close();
   try { await app?.stop(); }
   catch { console.error("Could not cleanly close the Photon connection."); }
+  calls?.close();
   followUps?.close();
   emails?.close();
   intakes?.close();
