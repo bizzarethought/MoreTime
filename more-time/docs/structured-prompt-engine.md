@@ -65,7 +65,7 @@ mixed into the new bill. STOP removes the active case and associated replies.
 
 The model returns `intent`, `answer`, optional `concern`, `supportingStatementIds`,
 `nextStep`, `contact`, optional `question`/`draft`, `needsDocument`,
-`needsPolicyLookup`, and `caseUpdates`. Responses are validated by Zod. Each memory
+`needsPolicyLookup`, `caseUpdates`, and `resourceIds` for curated assistance records. Responses are validated by Zod. Each memory
 patch needs an exact quote from the current message or intake; unsupported patches
 are ignored while existing memory remains. An intake fact cannot overwrite a later
 user correction. Confirmations must match the previous question and statement.
@@ -92,6 +92,12 @@ The backend:
 
 Approved scheduled check-ins and optional read-only Gmail alerts are separate application features; see [their guide](follow-ups-and-email.md). Outgoing biller email, negotiation and confirmed holds are not implemented.
 
+## Curated assistance context
+
+ZIP-based official resource matching augments the structured prompt with a small, dated knowledge layer. Location resolution and filtering by state/bill type happen in code; Gemini explains supplied facts and identifies missing eligibility information. `resourceIds` must reference records that match the effective case. The backend validates these references and renders the official links and verification dates. An assistance response with no resource citation can still receive the top matched navigation link, which does not substantiate uncited claims.
+
+This is deterministic resource matching plus grounded generation, without a document index, embeddings or semantic search. Current provider policy and legal protections still route through the existing Google Search step. See [architecture, source coverage and limitations](assistance-resources.md).
+
 ## Minimum questions and checks
 
 | Question | Required behavior |
@@ -104,7 +110,7 @@ Approved scheduled check-ins and optional read-only Gmail alerts are separate ap
 | Are these separate bills? | Preserve separate records and flag possible overlap. |
 | Can I pay in installments? | Use a known budget or ask for one; prepare a proposal. |
 | I can afford $X—what should I ask? | Compute payments and ask about start date/terms. |
-| Could I get assistance? | Identify the assistance team and missing eligibility facts. |
+| Could I get assistance? | Use matched official resources when available, cite their snapshot dates, identify missing eligibility facts and confirm unresolved service location. |
 | Is this EOB payable? | Compare with the provider statement and insurer processing. |
 | How do I dispute it? | Prepare a specific itemization/review request. |
 | Who do I contact? | Printed contact or cited public research; department guidance when a detail cannot be supported. |

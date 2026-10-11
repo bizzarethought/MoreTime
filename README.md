@@ -9,10 +9,19 @@ MoreTime is a hackathon project for people dealing with overdue bills, utility s
 - After verification, Gemini reads the saved bill and answers follow-up questions in the same chat, using saved bill facts, persistent case memory and the last ten conversation turns. Structured replies include a next step and contact guidance, with printed contacts labeled as unverified current. This requires a configured Gemini API key.
 - Send an updated bill directly in iMessage, or reply STOP to disconnect and remove the saved case from the active database.
 - Try the landing page’s sample conversations about shutoffs, payment plans, and disputed bills.
+- Match ZIP-based location and bill type to curated official assistance resources, then generate source-linked guidance with snapshot verification dates. Initial state-specific coverage is New Jersey, with national energy and hospital-assistance fallbacks.
 - Research public biller contacts, assistance, policies and legal terms through Gemini Google Search, with cited sources and a checked date.
 - Approve scheduled iMessage check-ins and optionally connect read-only Gmail for possible payment-notice alerts. Existing users can reopen settings through **Already connected? Manage connection**.
 
 The landing-page sample conversations are scripted New Jersey examples. Live answers run in iMessage. The assistant prepares drafts; sending email to billers and negotiating agreements are still planned. See the [demo walkthrough](more-time/docs/demo.md) and [check-in/Gmail setup](more-time/docs/follow-ups-and-email.md).
+
+## How assistance guidance is grounded
+
+MoreTime combines bill extraction and payment calculations with ZIP-based matching to verified assistance resources, then generates source-linked guidance. This is a curated knowledge layer with deterministic resource matching and grounded generation. It does not implement a document RAG pipeline: there is no document indexing, chunking, embedding store or semantic search.
+
+The backend resolves a ZIP through a bundled Census ZIP-area lookup, filters official resource records by state and bill type, and supplies the matching facts to Gemini. It validates resource IDs and appends official links with verification dates. Existing Google Search research handles current provider contacts, policies and legal questions separately.
+
+A match identifies an assistance route; it does not establish eligibility or a payment hold. Census ZIP areas approximate postal ZIPs, and unknown or ambiguous locations need confirmation. See [resource coverage, implementation and maintenance](more-time/docs/assistance-resources.md).
 
 ## Tech stack
 
